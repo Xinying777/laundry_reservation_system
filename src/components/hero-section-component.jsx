@@ -1,13 +1,58 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import Navigation from './navigation-component';
 
-const HeroSection = ({ onViewMachines }) => {
+const HeroSection = ({ onViewMachines, onLogout }) => {
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    } else {
+      // Fallback if onLogout is not provided
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('studentId');
+    }
+    navigate('/login');
+  };
+
+  const studentId = localStorage.getItem('studentId');
+
   return (
-    <div className="hero-section" 
-         style={{
-          //  backgroundImage: "url('https://images.unsplash.com/photo-1604176354204-9268737828e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')"
-         }}>
+    <div className="hero-section">
       <div className="hero-overlay"></div>
+      <Navigation />
       <div className="hero-content">
+        {/* Logout button and welcome message */}
+        <div style={{ 
+          position: 'absolute', 
+          top: '20px', 
+          right: '20px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '15px' 
+        }}>
+          {studentId && (
+            <span style={{ color: 'white', fontSize: '0.9rem' }}>
+              Welcome, {studentId}
+            </span>
+          )}
+          <button 
+            onClick={handleLogout}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              color: 'white',
+              border: '1px solid white',
+              padding: '8px 15px',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontSize: '0.9rem'
+            }}
+          >
+            Logout
+          </button>
+        </div>
+        
         <h1 className="hero-title">Northwestern Campus Laundry Hub</h1>
         <p className="hero-subtitle">Reserve your washer-dryer in advance for a stress-free laundry day</p>
         <button 
@@ -22,3 +67,4 @@ const HeroSection = ({ onViewMachines }) => {
 };
 
 export default HeroSection;
+

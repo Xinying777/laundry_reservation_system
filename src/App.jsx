@@ -1,79 +1,205 @@
-import React, { useState } from 'react';
-import HeroSection from './components/hero-section-component.jsx';
-import MachinesSection from './components/machines-section-component.jsx';
-import ReservationModal from './components/reservation-modal-component.jsx';
-import LostAndFound from './components/lost-and-found-component.jsx';
-import { machinesData } from './data/machine-data.js';
-import './App.css'; 
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import HeroSection from './components/hero-section-component';
+import MachinesSection from './components/machines-section-component';
+import LostAndFound from './components/lost-and-found-component';
+import ReservationModal from './components/reservation-modal-component';
+import Login from './components/login-component';
+import { machinesData } from './data/machine-data';
+import './App.css';
 
-const App = () => {
+function App() {
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // State for machines data
+  const [machines, setMachines] = useState(machinesData);
+  
+  // State for reservation modal
+  const [showModal, setShowModal] = useState(false);
   const [selectedMachine, setSelectedMachine] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [selectedTime, setSelectedTime] = useState('');
+  const [preSelectedTime, setPreSelectedTime] = useState('');
 
-  const handleViewMachines = () => {
-    document.getElementById('machines')?.scrollIntoView({ behavior: 'smooth' });
+  // Check authentication status on app load
+  useEffect(() => {
+    const checkAuth = () => {
+      const authStatus = localStorage.getItem('isAuthenticated');
+      setIsAuthenticated(authStatus === 'true');
+      setIsLoading(false);
+    };
+    
+    // Simulate checking authentication (in real app, this might be an API call)
+    setTimeout(checkAuth, 100);
+  }, []);
+
+  // Protected Route Component
+  const ProtectedRoute = ({ children }) => {
+    if (isLoading) {
+      return (
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '1.2rem',
+          color: '#2563eb'
+        }}>
+          Loading...
+        </div>
+      );
+    }
+    
+    return isAuthenticated ? children : <Navigate to="/login" replace />;
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('studentId');
+    setIsAuthenticated(false);
+  };
+
+  // Login wrapper that handles authentication
+  const LoginWrapper = () => {
+    if (isAuthenticated) {
+      return <Navigate to="/home" replace />;
+    }
+    return <Login setIsAuthenticated={setIsAuthenticated} />;
+  };
+
+  // Scroll to machines section when "View Machines" is clicked
+  const handleViewMachines = () => {
+    const machinesSection = document.getElementById('machines');
+    if (machinesSection) {
+      machinesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Handle machine reservation
   const handleReserve = (machine) => {
     setSelectedMachine(machine);
-    setIsModalOpen(true);
+    setShowModal(true);
   };
 
+  // Handle time slot selection
   const handleSlotSelect = (machineId, slotIndex, time) => {
-    setSelectedSlot(`${machineId}-${slotIndex}`);
-    setSelectedTime(time);
+    const slotKey = `${machineId}-${slotIndex}`;
+    setSelectedSlot(slotKey);
+    setPreSelectedTime(time);
+    
+    // Find the machine and open reservation modal
+    const machine = machines.find(m => m.id === machineId);
+    if (machine) {
+      setSelectedMachine(machine);
+      setShowModal(true);
+    }
   };
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
+  // Handle reservation submission
+  const handleReservationSubmit = (reservationData) => {
+    // In a real app, this would send data to a backend
+    console.log('Reservation submitted:', {
+      machine: selectedMachine,
+      ...reservationData
+    });
+    
+    // Update machine availability (simplified logic)
+    setMachines(prevMachines => 
+      prevMachines.map(machine => {
+        if (machine.id === selectedMachine.id) {
+          // Mark the selected time slot as unavailable
+          const updatedTimeSlots = machine.timeSlots.map(slot => {
+            if (slot.time === reservationData.time) {
+              return { ...slot, available: false };
+            }
+            return slot;
+          });
+          return { ...machine, timeSlots: updatedTimeSlots };
+        }
+        return machine;
+      })
+    );
+    
+    // Close modal and reset state
+    setShowModal(false);
     setSelectedMachine(null);
     setSelectedSlot(null);
-    setSelectedTime('');
+    setPreSelectedTime('');
+    
+    alert('Reservation confirmed! You will receive a confirmation email shortly.');
   };
 
-  const handleReservationSubmit = (formData) => {
-    alert(`Reservation confirmed!\n\nMachine: ${selectedMachine.name}\nDate: ${formData.date}\nTime: ${formData.time}\nStudent ID: ${formData.studentId}`);
-    handleModalClose();
+  // Close modal
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedMachine(null);
+    setSelectedSlot(null);
+    setPreSelectedTime('');
+  };
+
+  // Main page component
+  const MainPage = () => {
+    const navigate = useNavigate();
+    return (
+      <>
+        <HeroSection onViewMachines={handleViewMachines} onLogout={handleLogout} />
+        <MachinesSection 
+          machines={machines}
+          onReserve={handleReserve}
+          selectedSlot={selectedSlot}
+          onSlotSelect={handleSlotSelect}
+        />
+        <ReservationModal
+          isOpen={showModal}
+          onClose={handleCloseModal}
+          selectedMachine={selectedMachine}
+          selectedTime={preSelectedTime}
+          onSubmit={handleReservationSubmit}
+        />
+      </>
+    );
+  };
+
+  // Lost & Found wrapper
+  const LostAndFoundWrapper = () => {
+    return <LostAndFound onLogout={handleLogout} />;
   };
 
   return (
-    <div className="app-container">
-      <link 
-        rel="stylesheet" 
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-      />
-      
-      <HeroSection onViewMachines={handleViewMachines} />
-      
-      <MachinesSection 
-        machines={machinesData}
-        onReserve={handleReserve}
-        selectedSlot={selectedSlot}
-        onSlotSelect={handleSlotSelect}
-      />
+    <Router>
+      <div className="app-container">
+        <Routes>
+          {/* Default route redirects to login */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-       <LostAndFound />
-      
-      <ReservationModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        selectedMachine={selectedMachine}
-        selectedTime={selectedTime}
-        onSubmit={handleReservationSubmit}
-      />
+          {/* Login page */}
+          <Route path="/login" element={<LoginWrapper />} />
 
-      <ReservationModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        selectedMachine={selectedMachine}
-        selectedTime={selectedTime}
-        onSubmit={handleReservationSubmit}
-      />
-      
-    </div>
+          {/* Protected main application page */}
+          <Route 
+            path="/home" 
+            element={
+              <ProtectedRoute>
+                <MainPage />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Lost & Found 独立页面 */}
+          <Route 
+            path="/lostandfound" 
+            element={
+              <ProtectedRoute>
+                <LostAndFoundWrapper />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </div>
+    </Router>
   );
-};
+}
 
 export default App;

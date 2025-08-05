@@ -1,18 +1,28 @@
 import React, { useState } from 'react';
+// This is the popup modal for making laundry reservations
+
+// - isOpen: boolean to control if modal is visible
+// - onClose: function to close the modal
+// - selectedMachine: which machine is being reserved
+// - selectedTime: pre-selected time slot (from clicking on a time slot)
+// - onSubmit: function to handle reservation submission
 
 const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSubmit }) => {
+  // Form state - tracks date, time, and student ID
   const [formData, setFormData] = useState({
-    date: new Date().toISOString().split('T')[0],
-    time: selectedTime || '',
-    studentId: ''
+    date: new Date().toISOString().split('T')[0], // Default to today
+    time: selectedTime || '', // Use pre-selected time if available
+    studentId: '' // Student will enter this
   });
 
+    // When form is submitted
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.date || !formData.time || !formData.studentId) {
       alert('Please fill in all fields');
       return;
     }
+    // Send data to parent component and reset form
     onSubmit(formData);
     setFormData({ date: new Date().toISOString().split('T')[0], time: '', studentId: '' });
   };
@@ -50,6 +60,7 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
             />
           </div>
           
+           {/* Date picker - defaults to today */}
           <div className="form-group">
             <label className="form-label">Date</label>
             <input 
@@ -70,6 +81,7 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
               onChange={handleInputChange}
               className="form-select"
             >
+              {/* Time slot selection */}
               <option value="">Select a time</option>
               <option value="9:00 AM">9:00 AM - 11:00 AM</option>
               <option value="11:00 AM">11:00 AM - 1:00 PM</option>
