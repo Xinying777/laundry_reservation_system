@@ -12,12 +12,26 @@ const MachineCard = ({ machine, onReserve, selectedSlot, onSlotSelect }) => {
     return status === 'available' ? 'status-available' : 'status-in-use';
   };
 
+  const getStatusStyle = (status) => {
+    return {
+      color: status === 'available' ? '#10B981' : '#EF4444',
+      backgroundColor: status === 'available' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+      padding: '6px 12px',
+      borderRadius: '16px',
+      fontSize: '0.875rem',
+      fontWeight: '500',
+      border: `1px solid ${status === 'available' ? '#10B981' : '#EF4444'}`
+    };
+  };
+
   return (
     <div className="machine-card">
       {/* Card header with machine name and status */}
       <div className="machine-card-header">
-        <i className="fas fa-washing-machine machine-icon"></i>
-        <h3 className="machine-name">{machine.name}</h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <h3 className="machine-name">{machine.name}</h3>
+        </div>
+     
          {/* Status badge changes color based on availability */}
         <span className={`machine-status ${getStatusClass(machine.status)}`}>
           {machine.status === 'available' ? 'Available' : 'In Use'}
@@ -29,10 +43,6 @@ const MachineCard = ({ machine, onReserve, selectedSlot, onSlotSelect }) => {
           <p>
             <i className="fas fa-map-marker-alt"></i>
             Location: {machine.location}
-          </p>
-          <p>
-            <i className="fas fa-clock"></i>
-            Next available: {machine.nextAvailable}
           </p>
         </div>
         
