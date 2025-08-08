@@ -1,0 +1,136 @@
+# Laundry Reservation System
+
+Northwestern Campus Laundry Hub - A full-stack web application for managing laundry reservations and lost & found items.
+
+## Project Structure
+
+```
+laundry_reservation_system/
+├── laundry-backend/          # Node.js/Express backend API
+│   ├── src/
+│   │   ├── routes/           # API routes
+│   │   ├── config/           # Database configuration
+│   │   └── app.js           # Express app setup
+│   ├── database/            # Database schema and setup
+│   └── server.js           # Server entry point
+└── laundry-frontend/        # React frontend
+    ├── src/
+    │   ├── components/      # React components
+    │   └── data/           # Static data
+    └── public/             # Static assets
+```
+
+## Features
+
+- **User Authentication**: Student login system
+- **Machine Management**: View available washing machines
+- **Reservation System**: Book time slots for laundry
+- **Lost & Found**: Report and find lost items
+- **Responsive Design**: Mobile-friendly interface
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or higher)
+- PostgreSQL database
+- npm or yarn package manager
+
+### Backend Setup
+
+1. Navigate to the backend directory:
+   ```bash
+   cd laundry-backend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Configure your database connection
+
+4. Initialize the database:
+   ```bash
+   npm run db:init
+   ```
+
+5. Start the server:
+   ```bash
+   npm start
+   ```
+
+The backend will run on `http://localhost:3000`
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+   ```bash
+   cd laundry-frontend
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the React development server:
+   ```bash
+   npm start
+   ```
+
+The frontend will run on `http://localhost:3001` (or another available port)
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - User login
+
+### Machines
+- `GET /api/machines` - Get all machines
+- `GET /api/machines/:id/availability` - Get machine availability
+
+### Reservations
+- `GET /api/reservations` - Get all reservations
+- `POST /api/reservations` - Create new reservation
+- `PUT /api/reservations/:id` - Update reservation
+- `DELETE /api/reservations/:id` - Cancel reservation
+
+### Lost & Found
+- `GET /api/lostandfound` - Get all items
+- `POST /api/lostandfound` - Report new item
+
+## Demo Accounts
+
+For testing purposes, you can use these demo accounts:
+
+- Student ID: `demo`, Password: `demo`
+- Student ID: `123123`, Password: `password`
+- Student ID: `456789`, Password: `student123`
+
+## Technology Stack
+
+### Backend
+- Node.js
+- Express.js
+- PostgreSQL
+- dotenv for environment management
+
+### Frontend
+- React.js
+- React Router for navigation
+- CSS3 for styling
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is developed for Northwestern University.
