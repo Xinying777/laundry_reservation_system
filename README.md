@@ -87,6 +87,7 @@ The frontend will run on `http://localhost:3001` (or another available port)
 
 ### Authentication
 - `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
 
 ### Machines
 - `GET /api/machines` - Get all machines
@@ -109,6 +110,12 @@ For testing purposes, you can use these demo accounts:
 - Student ID: `demo`, Password: `demo`
 - Student ID: `123123`, Password: `password`
 - Student ID: `456789`, Password: `student123`
+
+**Or create your own account:**
+- Click "Sign up here" on the login page
+- Fill in your student information (Student ID, name, email, password)
+- Phone number is optional
+- After successful registration, you can log in with your new credentials
 
 ## Technology Stack
 
