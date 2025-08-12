@@ -18,7 +18,10 @@ router.post('/', async (req, res) => {
     finalEndTime = end_time;
   } else if (date && time && student_id && machine_id) {
     // Calculate start_time and end_time based on date and time
+    console.log('📅 Processing date/time format:', { date, time, student_id, machine_id });
+    
     const timeIn24h = convertTo24Hour(time);
+    console.log('🕐 Converted time:', time, '->', timeIn24h);
     
     // Use local date time format directly, no UTC conversion
     finalStartTime = `${date} ${timeIn24h}:00`;
@@ -39,7 +42,7 @@ router.post('/', async (req, res) => {
     const endTime24h = `${endHour.toString().padStart(2, '0')}:${minutes}`;
     finalEndTime = `${endDate} ${endTime24h}:00`;
     
-    console.log(`Calculated times: start=${finalStartTime}, end=${finalEndTime}`);
+    console.log(`🔄 Calculated times: start=${finalStartTime}, end=${finalEndTime}`);
   } else {
     return res.status(400).json({ 
       success: false,
@@ -81,6 +84,8 @@ router.post('/', async (req, res) => {
   
   try {
     // Check for time conflicts
+    console.log('🔍 Checking conflicts for:', { machine_id, finalStartTime, finalEndTime });
+    
     const conflictCheck = await pool.query(
       `SELECT * FROM reservations 
        WHERE machine_id = $1 
@@ -93,7 +98,10 @@ router.post('/', async (req, res) => {
       [machine_id, finalStartTime, finalEndTime]
     );
 
+    console.log('🔍 Found conflicts:', conflictCheck.rows.length, conflictCheck.rows);
+
     if (conflictCheck.rows.length > 0) {
+      console.log('❌ Conflict detected, rejecting reservation');
       return res.status(409).json({
         success: false,
         message: 'This time slot is already reserved. Please choose a different time.'

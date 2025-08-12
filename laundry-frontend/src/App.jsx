@@ -244,7 +244,7 @@ function App() {
 
   // Handle reservation submission
   const handleReservationSubmit = async (reservationData) => {
-    console.log('Reservation submitted:', {
+    console.log('🎯 Parent received reservation submission:', {
       machine: selectedMachine,
       ...reservationData
     });
@@ -271,7 +271,11 @@ function App() {
       })
     );
     
-    // Reset all modal-related states
+    // DON'T reset modal states here - let the ReservationModal component handle it
+    // The confirmation dialog will close the modal when user clicks "Great!"
+    console.log('🎯 Parent: Machine availability updated, letting modal handle confirmation');
+    
+    // Reset selected slot for future use, but keep modal open for confirmation
     setSelectedSlot(null);
     setPreSelectedTime('');
     

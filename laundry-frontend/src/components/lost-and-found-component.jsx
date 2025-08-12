@@ -17,28 +17,27 @@ const LostAndFound = ({ onLogout }) => {
 
   // Load existing reports when page loads
   useEffect(() => {
+    console.log('🚀 Lost and Found component mounted, fetching initial reports...');
     fetchExistingReports();
   }, []);
 
   // Function to fetch existing reports
   const fetchExistingReports = async () => {
     try {
+      console.log('🔄 Fetching reports...');
       const response = await fetch('http://localhost:3000/api/lostandfound/reports');
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched reports:', data);
-        setReports(Array.isArray(data) ? data : []);
+        console.log('📊 Fetched reports:', data.length, 'reports');
+        console.log('📋 First report:', data[0]);
+        setReports(data);
       } else {
-        console.error('Failed to fetch reports:', response.status);
-        setReports([]);
+        console.error('Failed to fetch reports');
       }
     } catch (error) {
       console.error('Error fetching reports:', error);
-      setReports([]);
     }
-  };
-
-  // Handles changes in the form inputs
+  };  // Handles changes in the form inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewReport(prev => ({
@@ -69,7 +68,7 @@ const LostAndFound = ({ onLogout }) => {
       }
 
       const data = await response.json();
-      console.log('Report submitted successfully:', data);
+      console.log('✅ Report submitted successfully:', data);
 
       // Reset form
       setNewReport({
@@ -80,7 +79,9 @@ const LostAndFound = ({ onLogout }) => {
       });
 
       // Refresh the reports list to include the new report
+      console.log('🔄 Refreshing reports list...');
       await fetchExistingReports();
+      console.log('✅ Reports list refreshed');
 
       alert('Report submitted successfully!');
     } catch (error) {

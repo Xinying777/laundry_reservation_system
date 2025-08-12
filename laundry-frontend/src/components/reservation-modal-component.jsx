@@ -23,11 +23,19 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
   // When form is submitted - call the actual API
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🚀 Form submitted with data:', formData);
+    
     if (!formData.date || !formData.time || !formData.studentId) {
+      console.log('❌ Validation failed - missing fields:', {
+        date: formData.date,
+        time: formData.time,
+        studentId: formData.studentId
+      });
       alert('Please fill in all fields');
       return;
     }
 
+    console.log('✅ Validation passed, starting submission...');
     setIsSubmitting(true);
 
     try {
@@ -56,22 +64,32 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
 
       if (result.success) {
         // Show confirmation popup
+        console.log('✅ Reservation successful, showing confirmation modal...');
+        console.log('🔄 Setting showConfirmation to true...');
         setShowConfirmation(true);
-        // Call parent component's onSubmit to update UI
-        onSubmit({
+        console.log('🔄 showConfirmation state should now be true');
+        
+        // Save student ID to localStorage for next time
+        localStorage.setItem('studentId', formData.studentId);
+        
+        // Store reservation data for later use
+        window.reservationData = {
           ...formData,
           machineId: selectedMachine.id,
           machineName: selectedMachine.name
-        });
-        // Save student ID to localStorage for next time
-        localStorage.setItem('studentId', formData.studentId);
+        };
+        
+        // DON'T call parent onSubmit immediately - let confirmation modal show first
+        console.log('🎯 Delaying parent onSubmit call to show confirmation first');
       } else {
+        console.log('❌ API returned error:', result);
         alert(result.message || 'Reservation failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error making reservation:', error);
+      console.error('❌ Network error making reservation:', error);
       alert('Network error. Please check your connection and try again.');
     } finally {
+      console.log('🔄 Resetting submission state...');
       setIsSubmitting(false);
     }
   };
@@ -85,8 +103,18 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
 
   // Handle confirmation popup close
   const handleConfirmationClose = () => {
+    console.log('🔄 Closing confirmation modal and resetting form...');
     setShowConfirmation(false);
     setIsSubmitting(false); // Ensure submission state is reset
+    
+    // NOW call parent component's onSubmit to update UI
+    if (window.reservationData) {
+      console.log('🎯 Now calling parent onSubmit with stored data...');
+      onSubmit(window.reservationData);
+      delete window.reservationData; // Clean up
+      console.log('🎯 Parent onSubmit call completed');
+    }
+    
     setFormData({ 
       date: new Date().toISOString().split('T')[0], 
       time: '', 
@@ -95,6 +123,28 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
     onClose(); // Close entire modal
   };
 
+  // Test function to trigger confirmation modal manually
+  const testConfirmationModal = () => {
+    console.log('🧪 Testing confirmation modal display...');
+    // Store test data
+    window.reservationData = {
+      date: '2025-08-20',
+      time: '6:00 AM',
+      studentId: 'demo',
+      machineId: selectedMachine?.id || 1,
+      machineName: selectedMachine?.name || 'Test Machine'
+    };
+    setShowConfirmation(true);
+  };
+
+  // Add test function to window for manual testing
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && isOpen) {
+      window.testConfirmationModal = testConfirmationModal;
+      console.log('🧪 Test function available: window.testConfirmationModal()');
+    }
+  }, [isOpen]);
+
   // Update form when selectedTime changes
   React.useEffect(() => {
     if (selectedTime) {
@@ -102,12 +152,28 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
     }
   }, [selectedTime]);
 
+  // Reset confirmation state when modal opens/closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setShowConfirmation(false);
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
+
+  // Monitor showConfirmation state changes
+  React.useEffect(() => {
+    console.log('🔄 showConfirmation state changed to:', showConfirmation);
+  }, [showConfirmation]);
+
   if (!isOpen) return null;
+
+  console.log('🔍 Modal render state:', { isOpen, showConfirmation, selectedMachine: selectedMachine?.name, isSubmitting });
 
   // Show confirmation popup after successful reservation
   if (showConfirmation) {
+    console.log('🎉 Rendering confirmation modal with data:', { selectedMachine, formData });
     return (
-      <div className="modal-overlay">
+      <div className="modal-overlay" style={{ zIndex: 1001 }}>
         <div className="modal-content confirmation-modal">
           <div className="confirmation-header">
             <div className="success-icon">✅</div>
@@ -136,6 +202,7 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
     );
   }
 
+  console.log('📝 Rendering reservation form');
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -149,7 +216,7 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
           </button>
         </div>
         
-        <div className="modal-body">
+        <form onSubmit={handleSubmit} className="modal-body">
           <div className="form-group">
             <label className="form-label">Machine</label>
             <input 
@@ -206,13 +273,13 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
           </div>
           
           <button 
-            onClick={handleSubmit}
+            type="submit"
             disabled={isSubmitting}
             className={`confirm-button ${isSubmitting ? 'submitting' : ''}`}
           >
             {isSubmitting ? 'Reserving...' : 'Confirm Reservation'}
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );
