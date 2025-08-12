@@ -28,14 +28,14 @@ const Signup = () => {
     setError('');
     setIsLoading(true);
 
-    // 验证密码确认
+    // Validate password confirmation
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       setIsLoading(false);
       return;
     }
 
-    // 验证必填字段
+    // Validate required fields
     if (!formData.student_id || !formData.password || !formData.name || !formData.email) {
       setError('Student ID, password, name, and email are required');
       setIsLoading(false);
@@ -60,7 +60,7 @@ const Signup = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // 显示成功弹窗
+        // Show success modal
         setShowSuccessModal(true);
       } else {
         setError(data.message || 'Registration failed');

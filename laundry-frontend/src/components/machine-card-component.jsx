@@ -8,21 +8,73 @@ import TimeSlot from './time-slot-component.jsx';
 // - onSlotSelect: function to handle slot selection
 
 const MachineCard = ({ machine, onReserve, selectedSlot, onSlotSelect }) => {
+  // Determine machine status based on available time slots and current time
+  const getMachineStatus = () => {
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    
+    // Check if any time slots are available
+    const hasAvailableSlots = machine.timeSlots.some(slot => slot.available);
+    
+    // Check if current time is within working hours (6 AM to 10 PM)
+    const isWithinWorkingHours = currentHour >= 6 && currentHour < 22;
+    
+    if (!isWithinWorkingHours) {
+      return 'closed';
+    } else if (hasAvailableSlots) {
+      return 'available';
+    } else {
+      return 'in-use';
+    }
+  };
+
   const getStatusClass = (status) => {
-    return status === 'available' ? 'status-available' : 'status-in-use';
+    switch (status) {
+      case 'available':
+        return 'status-available';
+      case 'in-use':
+        return 'status-in-use';
+      case 'closed':
+        return 'status-closed';
+      default:
+        return 'status-available';
+    }
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'available':
+        return 'Available';
+      case 'in-use':
+        return 'In Use';
+      case 'closed':
+        return 'Closed';
+      default:
+        return 'Available';
+    }
   };
 
   const getStatusStyle = (status) => {
+    const colors = {
+      available: { color: '#10B981', bg: 'rgba(16, 185, 129, 0.1)', border: '#10B981' },
+      'in-use': { color: '#EF4444', bg: 'rgba(239, 68, 68, 0.1)', border: '#EF4444' },
+      closed: { color: '#6B7280', bg: 'rgba(107, 114, 128, 0.1)', border: '#6B7280' }
+    };
+    
+    const colorScheme = colors[status] || colors.available;
+    
     return {
-      color: status === 'available' ? '#10B981' : '#EF4444',
-      backgroundColor: status === 'available' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+      color: colorScheme.color,
+      backgroundColor: colorScheme.bg,
       padding: '6px 12px',
       borderRadius: '16px',
       fontSize: '0.875rem',
       fontWeight: '500',
-      border: `1px solid ${status === 'available' ? '#10B981' : '#EF4444'}`
+      border: `1px solid ${colorScheme.border}`
     };
   };
+
+  const currentStatus = getMachineStatus();
 
   return (
     <div className="machine-card">
@@ -33,8 +85,11 @@ const MachineCard = ({ machine, onReserve, selectedSlot, onSlotSelect }) => {
         </div>
      
          {/* Status badge changes color based on availability */}
-        <span className={`machine-status ${getStatusClass(machine.status)}`}>
-          {machine.status === 'available' ? 'Available' : 'In Use'}
+        <span 
+          className={`machine-status ${getStatusClass(currentStatus)}`}
+          style={getStatusStyle(currentStatus)}
+        >
+          {getStatusText(currentStatus)}
         </span>
       </div>
       

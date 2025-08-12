@@ -2,9 +2,9 @@ const express = require('express');
 const { pool } = require('../config/database');
 const router = express.Router();
 
-// POST 方法登录 - 通过 request body
+// POST login method - via request body
 router.post('/login', async (req, res) => {
-  // 从 request body 获取数据
+  // Get data from request body
   const { student_id, password } = req.body;
   
   console.log('=== POST LOGIN DEBUG ===');
@@ -19,7 +19,7 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    // 从数据库查找用户
+    // Find user from database
     console.log('Querying database for user...');
     const result = await pool.query(
       'SELECT * FROM users WHERE student_id = $1',
@@ -43,7 +43,7 @@ router.post('/login', async (req, res) => {
       name: user.name
     });
     
-    // 直接比较密码
+    // Direct password comparison
     console.log('Comparing passwords...');
     const passwordMatch = (password === user.password);
     console.log('Password match result:', passwordMatch);
@@ -80,9 +80,9 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// 使用 GET 请求 - 通过 query parameters (保留原有方法兼容旧代码)
+// Use GET request - via query parameters (keep original method for backward compatibility)
 router.get('/login', async (req, res) => {
-  // 从 query parameters 获取数据，不是 body
+  // Get data from query parameters, not body
   const { student_id, password } = req.query;
   
   console.log('=== LOGIN DEBUG ===');
@@ -97,7 +97,7 @@ router.get('/login', async (req, res) => {
   }
 
   try {
-    // 从数据库查找用户
+    // Find user from database
     console.log('Querying database for user...');
     const result = await pool.query(
       'SELECT * FROM users WHERE student_id = $1',
@@ -121,11 +121,11 @@ router.get('/login', async (req, res) => {
       name: user.name
     });
     
-    // 简单的明文密码比较 - 直接检查是否等于 "demo"
+    // Simple plaintext password comparison - directly check if equals "demo"
     console.log('Comparing passwords...');
     console.log('Input password:', password);
     
-    // 直接比较密码是否为 "demo"
+    // Direct password comparison to check if equals "demo"
     const passwordMatch = (password === 'demo');
     console.log('Password match result (checking if password === "demo"):', passwordMatch);
     
@@ -161,7 +161,7 @@ router.get('/login', async (req, res) => {
   }
 });
 
-// POST 注册新用户
+// POST register new user
 router.post('/register', async (req, res) => {
   const { student_id, password, name, email, phone } = req.body;
   
@@ -173,7 +173,7 @@ router.post('/register', async (req, res) => {
     phone: phone || 'not provided'
   });
 
-  // 验证必需字段
+  // Validate required fields
   if (!student_id || !password || !name || !email) {
     return res.status(400).json({
       success: false,
@@ -182,7 +182,7 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    // 检查学号是否已存在
+    // Check if student ID already exists
     console.log('Checking if student_id already exists...');
     const existingUser = await pool.query(
       'SELECT student_id FROM users WHERE student_id = $1',
@@ -197,7 +197,7 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // 检查邮箱是否已存在
+    // Check if email already exists
     console.log('Checking if email already exists...');
     const existingEmail = await pool.query(
       'SELECT email FROM users WHERE email = $1',
@@ -212,7 +212,7 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // 插入新用户
+    // Insert new user
     console.log('Creating new user...');
     const result = await pool.query(
       'INSERT INTO users (student_id, password, name, email, phone) VALUES ($1, $2, $3, $4, $5) RETURNING id, student_id, name, email',

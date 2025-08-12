@@ -2,11 +2,11 @@ const express = require('express');
 const { pool } = require('../config/database');
 const router = express.Router();
 
-// 添加失物招领报告（放在所有 /:id 路由之前，临时使用测试用户id 1）
+// Add lost and found report (placed before all /:id routes, temporarily using test user id 1)
 router.post('/report', async (req, res) => {
   try {
     const { item_name, description, location_found, date_found, contact_info } = req.body;
-    const userId = 1; // 临时使用测试用户id
+    const userId = 1; // Temporarily using test user id
     if (!item_name || !description || !location_found) {
       return res.status(400).json({
         success: false,
@@ -69,7 +69,50 @@ router.post('/report', async (req, res) => {
   }
 });
 
-// 获取所有失物招领信息
+// Add reports endpoint for fetching all reports
+router.get('/reports', async (req, res) => {
+  try {
+    const { status, limit = 50, offset = 0 } = req.query;
+    let query = `
+      SELECT lf.*, u.name as reporter_name, u.student_id as reporter_student_id
+      FROM lost_and_found lf
+      JOIN users u ON lf.reporter_id = u.id
+    `;
+    const queryParams = [];
+    if (status) {
+      query += ' WHERE lf.status = $1';
+      queryParams.push(status);
+    }
+    const limitParam = queryParams.length + 1;
+    const offsetParam = queryParams.length + 2;
+    query += ` ORDER BY lf.created_at DESC LIMIT $${limitParam} OFFSET $${offsetParam}`;
+    queryParams.push(parseInt(limit), parseInt(offset));
+    const result = await pool.query(query, queryParams);
+    
+    // Return data in the format expected by frontend
+    const reports = result.rows.map(row => ({
+      _id: row.id,
+      item_name: row.item_name,
+      description: row.description,
+      location_found: row.location_found,
+      date_found: row.date_found,
+      contact_info: row.contact_info,
+      date: row.created_at,
+      reporter_name: row.reporter_name,
+      reporter_student_id: row.reporter_student_id
+    }));
+
+    res.json(reports); // Return array directly as expected by frontend
+  } catch (error) {
+    console.error('Error fetching lost and found reports:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error fetching lost and found reports'
+    });
+  }
+});
+
+// Get all lost and found information
 router.get('/', async (req, res) => {
   try {
     const { status, limit = 50, offset = 0 } = req.query;
@@ -107,7 +150,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 获取特定失物招领信息
+// Get specific lost and found information
 router.get('/:id', async (req, res) => {
   try {
     const itemId = req.params.id;
@@ -140,7 +183,7 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 更新失物招领状态（去除token验证，使用测试用户id 1）
+// Update lost and found status (remove token verification, use test user id 1)
 router.put('/:id/status', async (req, res) => {
   try {
     const itemId = req.params.id;

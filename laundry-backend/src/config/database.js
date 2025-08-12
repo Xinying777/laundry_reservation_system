@@ -9,7 +9,7 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// 测试数据库连接
+// Test database connection
 pool.on('connect', () => {
   console.log('✅ Connected to PostgreSQL database');
 });
@@ -18,7 +18,7 @@ pool.on('error', (err) => {
   console.error('❌ Database connection error:', err);
 });
 
-// 测试连接函数
+// Test connection function
 const testConnection = async () => {
   try {
     const client = await pool.connect();

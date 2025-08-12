@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HeroSection from './components/hero-section-component';
 import MachinesSection from './components/machines-section-component';
 import LostAndFound from './components/lost-and-found-component';
@@ -34,6 +34,142 @@ function App() {
     // Simulate checking authentication (in real app, this might be an API call)
     setTimeout(checkAuth, 100);
   }, []);
+
+  // Load existing reservations and update machine availability
+  useEffect(() => {
+    const loadReservations = async () => {
+      if (!isAuthenticated) return;
+
+      try {
+        const response = await fetch('http://localhost:3000/api/reservations');
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.reservations) {
+          const reservations = result.data.reservations;
+          const today = new Date().toISOString().split('T')[0];
+          
+          // Update machine availability based on existing reservations
+          setMachines(prevMachines => 
+            prevMachines.map(machine => {
+              const updatedTimeSlots = machine.timeSlots.map(slot => {
+                // Check if this time slot is reserved today
+                const isReserved = reservations.some(reservation => {
+                  // Add safety checks for reservation data
+                  if (!reservation || !reservation.start_time || !reservation.machine_id) {
+                    console.warn('Invalid reservation data:', reservation);
+                    return false;
+                  }
+                  
+                  try {
+                    // Handle both local and UTC ISO date formats
+                    let reservationDate;
+                    
+                    if (reservation.start_time.includes('T') && reservation.start_time.includes('Z')) {
+                      // UTC ISO format - convert to local date
+                      const dateObj = new Date(reservation.start_time);
+                      reservationDate = dateObj.toISOString().split('T')[0];
+                    } else {
+                      // Local format - extract date part
+                      const reservationDateParts = reservation.start_time.split(' ');
+                      if (reservationDateParts.length < 1) {
+                        console.warn('Invalid start_time format:', reservation.start_time);
+                        return false;
+                      }
+                      reservationDate = reservationDateParts[0];
+                    }
+                    
+                    const reservationTime = convertTimeToSlotFormat(reservation.start_time);
+                    
+                    return reservation.machine_id === machine.id && 
+                           reservationDate === today &&
+                           reservationTime === slot.time &&
+                           (reservation.status === 'pending' || reservation.status === 'confirmed');
+                  } catch (error) {
+                    console.error('Error processing reservation:', error, reservation);
+                    return false;
+                  }
+                });
+                
+                return {
+                  ...slot,
+                  available: slot.available && !isReserved
+                };
+              });
+
+              // Check if machine still has available slots
+              const hasAvailableSlot = updatedTimeSlots.some(slot => slot.available);
+              
+              return {
+                ...machine,
+                timeSlots: updatedTimeSlots,
+                status: hasAvailableSlot ? 'available' : 'in-use'
+              };
+            })
+          );
+        }
+      } catch (error) {
+        console.error('Error loading reservations:', error);
+      }
+    };
+
+    loadReservations();
+  }, [isAuthenticated]);
+
+  // Helper function to convert database time to slot format
+  const convertTimeToSlotFormat = (dateTimeString) => {
+    // Check if dateTimeString is valid
+    if (!dateTimeString || typeof dateTimeString !== 'string') {
+      console.warn('Invalid dateTimeString passed to convertTimeToSlotFormat:', dateTimeString);
+      return '';
+    }
+    
+    try {
+      // Handle both local format (YYYY-MM-DD HH:MM:SS) and UTC ISO format (YYYY-MM-DDTHH:MM:SS.sssZ)
+      let dateTime;
+      
+      if (dateTimeString.includes('T') && dateTimeString.includes('Z')) {
+        // UTC ISO format - convert to local time
+        dateTime = new Date(dateTimeString);
+        const hours = dateTime.getHours();
+        const minutes = dateTime.getMinutes();
+        
+        if (hours === 0) return '12:00 AM';
+        if (hours < 12) return `${hours}:${minutes.toString().padStart(2, '0')} AM`;
+        if (hours === 12) return `12:${minutes.toString().padStart(2, '0')} PM`;
+        return `${hours - 12}:${minutes.toString().padStart(2, '0')} PM`;
+      } else {
+        // Local format - use existing logic
+        const parts = dateTimeString.split(' ');
+        if (parts.length < 2) {
+          console.warn('Invalid datetime format:', dateTimeString);
+          return '';
+        }
+        
+        const time = parts[1];
+        const timeParts = time.split(':');
+        if (timeParts.length < 2) {
+          console.warn('Invalid time format:', time);
+          return '';
+        }
+        
+        const [hours, minutes] = timeParts;
+        const hour24 = parseInt(hours);
+        
+        if (isNaN(hour24)) {
+          console.warn('Invalid hour format:', hours);
+          return '';
+        }
+        
+        if (hour24 === 0) return '12:00 AM';
+        if (hour24 < 12) return `${hour24}:${minutes} AM`;
+        if (hour24 === 12) return `12:${minutes} PM`;
+        return `${hour24 - 12}:${minutes} PM`;
+      }
+    } catch (error) {
+      console.error('Error converting time format:', error, dateTimeString);
+      return '';
+    }
+  };
 
   // Protected Route Component
   const ProtectedRoute = ({ children }) => {
@@ -107,14 +243,13 @@ function App() {
   };
 
   // Handle reservation submission
-  const handleReservationSubmit = (reservationData) => {
-    // In a real app, this would send data to a backend
+  const handleReservationSubmit = async (reservationData) => {
     console.log('Reservation submitted:', {
       machine: selectedMachine,
       ...reservationData
     });
     
-    // Update machine availability (simplified logic)
+    // Update machine availability - mark the selected time slot as unavailable
     setMachines(prevMachines => 
       prevMachines.map(machine => {
         if (machine.id === selectedMachine.id) {
@@ -125,19 +260,81 @@ function App() {
             }
             return slot;
           });
-          return { ...machine, timeSlots: updatedTimeSlots };
+          
+          return { 
+            ...machine, 
+            timeSlots: updatedTimeSlots
+            // Remove status setting - let MachineCard component calculate it
+          };
         }
         return machine;
       })
     );
     
-    // Close modal and reset state
-    setShowModal(false);
-    setSelectedMachine(null);
+    // Reset all modal-related states
     setSelectedSlot(null);
     setPreSelectedTime('');
     
-    alert('Reservation confirmed! You will receive a confirmation email shortly.');
+    // Delay reload of reservation data to ensure database is updated
+    setTimeout(async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/reservations');
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data && result.data.reservations) {
+            const reservations = result.data.reservations;
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Recalculate machine availability
+            setMachines(currentMachines => 
+              currentMachines.map(machine => {
+                const updatedTimeSlots = machine.timeSlots.map(slot => {
+                  const isReserved = reservations.some(reservation => {
+                    if (!reservation || !reservation.start_time || !reservation.machine_id) {
+                      return false;
+                    }
+                    
+                    try {
+                      let reservationDate;
+                      if (reservation.start_time.includes('T') && reservation.start_time.includes('Z')) {
+                        const dateObj = new Date(reservation.start_time);
+                        reservationDate = dateObj.toISOString().split('T')[0];
+                      } else {
+                        const reservationDateParts = reservation.start_time.split(' ');
+                        if (reservationDateParts.length < 1) return false;
+                        reservationDate = reservationDateParts[0];
+                      }
+                      
+                      const reservationTime = convertTimeToSlotFormat(reservation.start_time);
+                      
+                      return reservation.machine_id === machine.id && 
+                             reservationDate === today &&
+                             reservationTime === slot.time &&
+                             (reservation.status === 'pending' || reservation.status === 'confirmed');
+                    } catch (error) {
+                      console.error('Error processing reservation:', error);
+                      return false;
+                    }
+                  });
+                  
+                  return {
+                    ...slot,
+                    available: !isReserved
+                  };
+                });
+                
+                return {
+                  ...machine,
+                  timeSlots: updatedTimeSlots
+                };
+              })
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error refreshing reservations:', error);
+      }
+    }, 500); // Wait 500ms to ensure database update is complete
   };
 
   // Close modal
@@ -198,7 +395,7 @@ function App() {
             } 
           />
 
-          {/* Lost & Found 独立页面 */}
+          {/* Lost & Found independent page */}
           <Route 
             path="/lostandfound" 
             element={

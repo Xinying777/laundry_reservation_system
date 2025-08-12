@@ -7,27 +7,31 @@ export const machinesData = [
     nextAvailable: 'Now',
     status: 'available',
     timeSlots: [
-      { time: '9:00 AM', available: true },
-      { time: '11:00 AM', available: true },
-      { time: '1:00 PM', available: false },
-      { time: '3:00 PM', available: true },
-      { time: '5:00 PM', available: true },
-      { time: '7:00 PM', available: false }
+      { time: '6:00 AM', available: true },
+      { time: '8:00 AM', available: true },
+      { time: '10:00 AM', available: true },
+      { time: '12:00 PM', available: true },
+      { time: '2:00 PM', available: true },
+      { time: '4:00 PM', available: true },
+      { time: '6:00 PM', available: true },
+      { time: '8:00 PM', available: true }
     ]
   },
   {
     id: 2,
     name: 'Washer-Dryer #2',
     location: 'Dorm A, Ground Floor',
-    nextAvailable: '2:30 PM',
-    status: 'in-use',
+    nextAvailable: 'Now',
+    status: 'available',
     timeSlots: [
-      { time: '9:00 AM', available: false },
-      { time: '11:00 AM', available: false },
-      { time: '3:00 PM', available: true },
-      { time: '5:00 PM', available: true },
-      { time: '7:00 PM', available: true },
-      { time: '9:00 PM', available: true }
+      { time: '6:00 AM', available: true },
+      { time: '8:00 AM', available: true },
+      { time: '10:00 AM', available: true },
+      { time: '12:00 PM', available: true },
+      { time: '2:00 PM', available: true },
+      { time: '4:00 PM', available: true },
+      { time: '6:00 PM', available: true },
+      { time: '8:00 PM', available: true }
     ]
   }
 ];

@@ -4,39 +4,44 @@ import Navigation from './navigation-component';
 
 const LostAndFound = ({ onLogout }) => {
   const navigate = useNavigate();
-  const [comments, setComments] = useState([]);
+  const [reports, setReports] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // State for the new comment being typed
-  const [newComment, setNewComment] = useState({
+  // State for the new report being typed
+  const [newReport, setNewReport] = useState({
     item_name: '',
     description: '',
     location_found: '',
-    date_found: new Date().toISOString().split('T')[0] // 默认为今天
+    date_found: new Date().toISOString().split('T')[0] // Default to today
   });
 
-  // 页面加载时获取已有的报告
+  // Load existing reports when page loads
   useEffect(() => {
     fetchExistingReports();
   }, []);
 
-  // 获取已有报告的函数
+  // Function to fetch existing reports
   const fetchExistingReports = async () => {
     try {
       const response = await fetch('http://localhost:3000/api/lostandfound/reports');
       if (response.ok) {
         const data = await response.json();
-        setComments(data);
+        console.log('Fetched reports:', data);
+        setReports(Array.isArray(data) ? data : []);
+      } else {
+        console.error('Failed to fetch reports:', response.status);
+        setReports([]);
       }
     } catch (error) {
       console.error('Error fetching reports:', error);
+      setReports([]);
     }
   };
 
   // Handles changes in the form inputs
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewComment(prev => ({
+    setNewReport(prev => ({
       ...prev,
       [name]: value
     }));
@@ -44,7 +49,7 @@ const LostAndFound = ({ onLogout }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!newComment.item_name || !newComment.description || !newComment.location_found) {
+    if (!newReport.item_name || !newReport.description || !newReport.location_found) {
       alert('Please fill in all required fields');
       return;
     }
@@ -56,7 +61,7 @@ const LostAndFound = ({ onLogout }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(newComment)
+        body: JSON.stringify(newReport)
       });
 
       if (!response.ok) {
@@ -66,21 +71,16 @@ const LostAndFound = ({ onLogout }) => {
       const data = await response.json();
       console.log('Report submitted successfully:', data);
 
-      // 直接将新报告添加到本地状态
-      const newReport = {
-        ...newComment,
-        _id: data._id || Date.now(), // 使用服务器返回的ID或临时ID
-        date: new Date().toLocaleString()
-      };
-      setComments(prevComments => [newReport, ...prevComments]); // 将新报告添加到列表开头
-
       // Reset form
-      setNewComment({
+      setNewReport({
         item_name: '',
         description: '',
         location_found: '',
         date_found: new Date().toISOString().split('T')[0]
       });
+
+      // Refresh the reports list to include the new report
+      await fetchExistingReports();
 
       alert('Report submitted successfully!');
     } catch (error) {
@@ -106,7 +106,7 @@ const LostAndFound = ({ onLogout }) => {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* 顶部蓝色横幅，与主界面一致 */}
+      {/* Top blue banner, consistent with main interface */}
       <div className="hero-section">
         <Navigation />
         <div className="hero-content">
@@ -145,7 +145,7 @@ const LostAndFound = ({ onLogout }) => {
         </div>
       </div>
 
-      {/* 内容居中，风格统一 */}
+      {/* Content centered, unified style */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
@@ -179,7 +179,7 @@ const LostAndFound = ({ onLogout }) => {
               <input
                 type="text"
                 name="item_name"
-                value={newComment.item_name}
+                value={newReport.item_name}
                 onChange={handleInputChange}
                 style={{
                   padding: '12px',
@@ -208,7 +208,7 @@ const LostAndFound = ({ onLogout }) => {
               }}>Description *</label>
               <textarea
                 name="description"
-                value={newComment.description}
+                value={newReport.description}
                 onChange={handleInputChange}
                 style={{
                   padding: '12px',
@@ -240,7 +240,7 @@ const LostAndFound = ({ onLogout }) => {
               <input
                 type="text"
                 name="location_found"
-                value={newComment.location_found}
+                value={newReport.location_found}
                 onChange={handleInputChange}
                 style={{
                   padding: '12px',
@@ -270,7 +270,7 @@ const LostAndFound = ({ onLogout }) => {
               <input
                 type="date"
                 name="date_found"
-                value={newComment.date_found}
+                value={newReport.date_found}
                 onChange={handleInputChange}
                 style={{
                   padding: '12px',
@@ -327,10 +327,10 @@ const LostAndFound = ({ onLogout }) => {
               marginBottom: '20px'
             }}>Recent Reports</h2>
             
-            {comments.length > 0 ? (
-              comments.map((comment) => (
+            {reports.length > 0 ? (
+              reports.map((report) => (
                 <div 
-                  key={comment._id || comment.id} 
+                  key={report._id || report.id} 
                   style={{
                     backgroundColor: 'white',
                     borderRadius: '8px',
@@ -356,12 +356,12 @@ const LostAndFound = ({ onLogout }) => {
                       borderRadius: '16px',
                       fontSize: '0.875rem',
                       fontWeight: '500'
-                    }}>{comment.item_name}</span>
+                    }}>{report.item_name}</span>
                     <span style={{
                       color: '#6b7280',
                       fontSize: '0.875rem'
                     }}>
-                      {comment.date || new Date(comment.date_found).toLocaleDateString()}
+                      {new Date(report.date || report.date_found).toLocaleDateString()}
                     </span>
                   </div>
                   <p style={{
@@ -369,12 +369,12 @@ const LostAndFound = ({ onLogout }) => {
                     color: '#1f2937',
                     marginBottom: '12px',
                     lineHeight: '1.5'
-                  }}>{comment.description}</p>
+                  }}>{report.description}</p>
                   <p style={{
                     fontSize: '0.875rem',
                     color: '#4b5563'
                   }}>
-                    <strong>Location:</strong> {comment.location_found}
+                    <strong>Location:</strong> {report.location_found}
                   </p>
                 </div>
               ))
