@@ -7,19 +7,19 @@ const fs = require('fs');
 
 const app = express();
 
-// 中间件
+// Middleware
 app.use(helmet());
 app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 健康检查
+// Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Laundry Backend is running!' });
 });
 
-// 调试端点 - 检查环境变量
+// Debug endpoint - Check environment variables
 app.get('/debug/env', (req, res) => {
   res.json({
     DB_HOST: process.env.DB_HOST || 'NOT_SET',
@@ -31,7 +31,7 @@ app.get('/debug/env', (req, res) => {
   });
 });
 
-// 路由
+// Routes
 const authRoutes = require('./routes/auth');
 const machineRoutes = require('./routes/machines');
 const reservationRoutes = require('./routes/reservations');
@@ -42,7 +42,7 @@ app.use('/api/machines', machineRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/lostandfound', lostAndFoundRoutes);
 
-// API信息端点
+// API information endpoint
 app.get('/api', (req, res) => {
   res.json({
     message: 'Laundry Reservation System API',
@@ -93,7 +93,7 @@ if (fs.existsSync(frontendBuildPath)) {
   });
 }
 
-// 404处理
+// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -102,7 +102,7 @@ app.use('*', (req, res) => {
   });
 });
 
-// 全局错误处理
+// Global error handler
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
   res.status(500).json({
