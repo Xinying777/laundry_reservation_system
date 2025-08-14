@@ -106,9 +106,11 @@ The backend will run on `http://localhost:3000`
 
 The frontend will run on `http://localhost:3005`
 
-## API Documentation
+## Documentation
 
-For detailed API documentation, please refer to the [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) file.
+- [API Documentation](./API.md) - Complete API reference
+- [Setup Guide](./SETUP.md) - Instructions for setting up the development environment
+- [Deployment Guide](./DEPLOYMENT.md) - Guide to deploy the application to Azure
 
 ### Main API Endpoints
 
