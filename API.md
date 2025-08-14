@@ -5,7 +5,7 @@ This document provides comprehensive information about the available API endpoin
 ## Base URL
 
 - **Development**: `http://localhost:3000`
-- **Production**: `https://your-azure-app-service.azurewebsites.net`
+- **Production**: `https://laundry-backend-app.azurewebsites.net`
 
 ## Authentication
 
