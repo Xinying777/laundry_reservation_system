@@ -18,34 +18,52 @@ router.post('/login', async (req, res) => {
     });
   }
 
-  try {
-    // Find user from database
-    console.log('Querying database for user...');
-    const result = await pool.query(
-      'SELECT * FROM users WHERE student_id = $1',
-      [student_id]
-    );
-    
-    console.log('Database query result rows:', result.rows.length);
+  // 临时用户列表 - 硬编码一些用户，不依赖数据库
+  const localUsers = [
+    {
+      id: 1,
+      student_id: 'demo',
+      password: 'demo',
+      name: 'Demo User',
+      email: 'demo@university.edu'
+    },
+    {
+      id: 2,
+      student_id: '123123',
+      password: 'password',
+      name: 'Student One',
+      email: 'student1@university.edu'
+    },
+    {
+      id: 3,
+      student_id: '456789',
+      password: 'student123',
+      name: 'Student Two',
+      email: 'student2@university.edu'
+    }
+  ];
 
-    if (result.rows.length === 0) {
-      console.log('❌ User not found in database');
+  try {
+    console.log('Using local user validation instead of database...');
+    const foundUser = localUsers.find(u => u.student_id === student_id);
+    
+    if (!foundUser) {
+      console.log('❌ User not found in local users');
       return res.status(401).json({ 
         success: false,
         message: 'Invalid student ID or password' 
       });
     }
 
-    const user = result.rows[0];
     console.log('✅ User found:', {
-      id: user.id,
-      student_id: user.student_id,
-      name: user.name
+      id: foundUser.id,
+      student_id: foundUser.student_id,
+      name: foundUser.name
     });
     
     // Direct password comparison
     console.log('Comparing passwords...');
-    const passwordMatch = (password === user.password);
+    const passwordMatch = (password === foundUser.password);
     console.log('Password match result:', passwordMatch);
     
     if (passwordMatch) {
@@ -56,9 +74,9 @@ router.post('/login', async (req, res) => {
         data: {
           token: 'mock-jwt-token',
           user: {
-            id: user.id,
-            student_id: user.student_id,
-            name: user.name
+            id: foundUser.id,
+            student_id: foundUser.student_id,
+            name: foundUser.name
           }
         }
       });
@@ -80,100 +98,11 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Use GET request - via query parameters (keep original method for backward compatibility)
-router.get('/login', async (req, res) => {
-  // Get data from query parameters, not body
-  const { student_id, password } = req.query;
-  
-  console.log('=== LOGIN DEBUG ===');
-  console.log('Received student_id:', student_id);
-  console.log('Received password:', password);
-
-  if (!student_id || !password) {
-    return res.status(400).json({
-      success: false,
-      message: 'Student ID and password are required'
-    });
-  }
-
-  try {
-    // Find user from database
-    console.log('Querying database for user...');
-    const result = await pool.query(
-      'SELECT * FROM users WHERE student_id = $1',
-      [student_id]
-    );
-    
-    console.log('Database query result rows:', result.rows.length);
-
-    if (result.rows.length === 0) {
-      console.log('❌ User not found in database');
-      return res.status(401).json({ 
-        success: false,
-        message: 'Invalid student ID or password' 
-      });
-    }
-
-    const user = result.rows[0];
-    console.log('✅ User found:', {
-      id: user.id,
-      student_id: user.student_id,
-      name: user.name
-    });
-    
-    // Simple plaintext password comparison - directly check if equals "demo"
-    console.log('Comparing passwords...');
-    console.log('Input password:', password);
-    
-    // Direct password comparison to check if equals "demo"
-    const passwordMatch = (password === 'demo');
-    console.log('Password match result (checking if password === "demo"):', passwordMatch);
-    
-    if (passwordMatch) {
-      console.log('✅ Login successful');
-      return res.json({ 
-        success: true,
-        message: 'Login successful', 
-        data: {
-          token: 'mock-jwt-token',
-          user: {
-            id: user.id,
-            student_id: user.student_id,
-            name: user.name
-          }
-        }
-      });
-    } else {
-      console.log('❌ Password does not match');
-      return res.status(401).json({ 
-        success: false,
-        message: 'Invalid student ID or password' 
-      });
-    }
-
-  } catch (error) {
-    console.error('❌ Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Login failed',
-      error: error.message
-    });
-  }
-});
-
-// POST register new user
+// 注册路由
 router.post('/register', async (req, res) => {
   const { student_id, password, name, email, phone } = req.body;
-  
-  console.log('=== REGISTER DEBUG ===');
-  console.log('Received registration data:', {
-    student_id,
-    name,
-    email,
-    phone: phone || 'not provided'
-  });
 
-  // Validate required fields
+  // 验证必填字段
   if (!student_id || !password || !name || !email) {
     return res.status(400).json({
       success: false,
@@ -182,69 +111,76 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    // Check if student ID already exists
-    console.log('Checking if student_id already exists...');
-    const existingUser = await pool.query(
-      'SELECT student_id FROM users WHERE student_id = $1',
+    // 检查用户是否已存在
+    const checkResult = await pool.query(
+      'SELECT * FROM users WHERE student_id = $1',
       [student_id]
     );
-    
-    if (existingUser.rows.length > 0) {
-      console.log('❌ Student ID already exists');
-      return res.status(409).json({ 
+
+    if (checkResult.rows.length > 0) {
+      return res.status(409).json({
         success: false,
-        message: 'Student ID already exists. Please use a different Student ID.' 
+        message: 'Student ID already exists'
       });
     }
 
-    // Check if email already exists
-    console.log('Checking if email already exists...');
-    const existingEmail = await pool.query(
-      'SELECT email FROM users WHERE email = $1',
-      [email]
-    );
-    
-    if (existingEmail.rows.length > 0) {
-      console.log('❌ Email already exists');
-      return res.status(409).json({ 
-        success: false,
-        message: 'Email already exists. Please use a different email address.' 
-      });
-    }
-
-    // Insert new user
-    console.log('Creating new user...');
-    const result = await pool.query(
-      'INSERT INTO users (student_id, password, name, email, phone) VALUES ($1, $2, $3, $4, $5) RETURNING id, student_id, name, email',
+    // 创建新用户
+    const insertResult = await pool.query(
+      'INSERT INTO users (student_id, password, name, email, phone) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [student_id, password, name, email, phone || null]
     );
-    
-    const newUser = result.rows[0];
-    console.log('✅ User created successfully:', {
-      id: newUser.id,
-      student_id: newUser.student_id,
-      name: newUser.name,
-      email: newUser.email
-    });
 
-    return res.status(201).json({ 
+    const newUser = insertResult.rows[0];
+
+    res.status(201).json({
       success: true,
-      message: 'Registration successful! You can now log in with your credentials.',
+      message: 'User registered successfully',
       data: {
         user: {
           id: newUser.id,
           student_id: newUser.student_id,
-          name: newUser.name,
-          email: newUser.email
+          name: newUser.name
         }
       }
     });
-
   } catch (error) {
-    console.error('❌ Registration error:', error);
+    console.error('Registration error:', error);
     res.status(500).json({
       success: false,
-      message: 'Registration failed. Please try again later.',
+      message: 'Registration failed',
+      error: error.message
+    });
+  }
+});
+
+// 获取用户信息路由
+router.get('/user/:id', async (req, res) => {
+  const userId = req.params.id;
+
+  try {
+    const result = await pool.query(
+      'SELECT id, student_id, name, email, phone, created_at FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        user: result.rows[0]
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve user information',
       error: error.message
     });
   }

@@ -46,7 +46,7 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
         time: formData.time
       });
 
-      const response = await fetch('http://localhost:3000/api/reservations', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/reservations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

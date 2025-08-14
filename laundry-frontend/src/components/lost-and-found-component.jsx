@@ -25,7 +25,7 @@ const LostAndFound = ({ onLogout }) => {
   const fetchExistingReports = async () => {
     try {
       console.log('🔄 Fetching reports...');
-      const response = await fetch('http://localhost:3000/api/lostandfound/reports');
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/lostandfound/reports`);
       if (response.ok) {
         const data = await response.json();
         console.log('📊 Fetched reports:', data.length, 'reports');
@@ -55,7 +55,7 @@ const LostAndFound = ({ onLogout }) => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:3000/api/lostandfound/report', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/lostandfound/report`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

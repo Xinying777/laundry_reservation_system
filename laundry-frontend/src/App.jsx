@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import HeroSection from './components/hero-section-component';
 import MachinesSection from './components/machines-section-component';
 import LostAndFound from './components/lost-and-found-component';
@@ -41,7 +41,7 @@ function App() {
       if (!isAuthenticated) return;
 
       try {
-        const response = await fetch('http://localhost:3000/api/reservations');
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/reservations`);
         const result = await response.json();
         
         if (result.success && result.data && result.data.reservations) {
@@ -282,7 +282,7 @@ function App() {
     // Delay reload of reservation data to ensure database is updated
     setTimeout(async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/reservations');
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/reservations`);
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.data && result.data.reservations) {
@@ -376,41 +376,34 @@ function App() {
     return <LostAndFound onLogout={handleLogout} />;
   };
 
+  // Define the router configuration
+  const router = createBrowserRouter([
+    {
+      path: "/",
+      element: <Navigate to="/login" replace />
+    },
+    {
+      path: "/login",
+      element: <LoginWrapper />
+    },
+    {
+      path: "/signup",
+      element: <SignupWrapper />
+    },
+    {
+      path: "/home",
+      element: <ProtectedRoute><MainPage /></ProtectedRoute>
+    },
+    {
+      path: "/lostandfound",
+      element: <ProtectedRoute><LostAndFoundWrapper /></ProtectedRoute>
+    }
+  ]);
+
   return (
-    <Router>
-      <div className="app-container">
-        <Routes>
-          {/* Default route redirects to login */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-
-          {/* Login page */}
-          <Route path="/login" element={<LoginWrapper />} />
-
-          {/* Signup page */}
-          <Route path="/signup" element={<SignupWrapper />} />
-
-          {/* Protected main application page */}
-          <Route 
-            path="/home" 
-            element={
-              <ProtectedRoute>
-                <MainPage />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* Lost & Found independent page */}
-          <Route 
-            path="/lostandfound" 
-            element={
-              <ProtectedRoute>
-                <LostAndFoundWrapper />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </div>
-    </Router>
+    <div className="app-container">
+      <RouterProvider router={router} />
+    </div>
   );
 }
 

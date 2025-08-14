@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 
@@ -74,6 +76,22 @@ app.get('/api', (req, res) => {
     }
   });
 });
+
+// Serve frontend static files if a production build exists in the backend `build` folder
+// (This allows visiting /home and other client routes to return index.html)
+const frontendBuildPath = path.join(__dirname, '..', 'build');
+if (fs.existsSync(frontendBuildPath)) {
+  app.use(express.static(frontendBuildPath));
+
+  // Fallback to index.html for client-side routes
+  app.get('*', (req, res, next) => {
+    // If request starts with /api, pass through to API routes
+    if (req.originalUrl.startsWith('/api') || req.originalUrl === '/health' || req.originalUrl.startsWith('/debug')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendBuildPath, 'index.html'));
+  });
+}
 
 // 404处理
 app.use('*', (req, res) => {
