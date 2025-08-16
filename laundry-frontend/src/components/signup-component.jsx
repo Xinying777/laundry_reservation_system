@@ -219,13 +219,13 @@ const Signup = () => {
           }}>
             <div style={{
               fontSize: '3rem',
-              color: '#10b981',
+              color: '#4E2A84', // Northwestern purple
               marginBottom: '20px'
             }}>
               ✅
             </div>
             <h3 style={{
-              color: '#10b981',
+              color: '#4E2A84', // Northwestern purple
               marginBottom: '15px'
             }}>
               Registration Successful!
@@ -235,19 +235,23 @@ const Signup = () => {
               marginBottom: '25px',
               lineHeight: '1.5'
             }}>
-              Your account has been created successfully. You can now log in with your student ID and password.
+              Your account has been created successfully. You can now log in with your Northwestern student ID and password.
             </p>
             <button
               onClick={handleSuccessModalClose}
               style={{
-                backgroundColor: '#2563eb',
+                backgroundColor: '#4E2A84', // Northwestern purple
                 color: 'white',
                 border: 'none',
                 padding: '10px 20px',
                 borderRadius: '5px',
                 cursor: 'pointer',
-                fontSize: '1rem'
+                fontSize: '1rem',
+                boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                transition: 'all 0.3s ease'
               }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#401F68'} // Darker purple on hover
+              onMouseOut={(e) => e.target.style.backgroundColor = '#4E2A84'} // Return to normal
             >
               Go to Login
             </button>

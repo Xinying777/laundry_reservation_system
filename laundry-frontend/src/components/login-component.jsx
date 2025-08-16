@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Login = ({ setIsAuthenticated }) => {
@@ -7,6 +7,13 @@ const Login = ({ setIsAuthenticated }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // 清除本地存储中的认证信息
+  useEffect(() => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('studentId');
+    console.log('Local storage cleared');
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -14,6 +21,15 @@ const Login = ({ setIsAuthenticated }) => {
     setIsLoading(true);
 
     try {
+      console.log('Attempting to login with:', {
+        url: `${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/auth/login`,
+        student_id: studentId
+      });
+      
+      // 添加超时处理
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5秒超时
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/auth/login`, {
         method: 'POST',
         headers: {
@@ -22,10 +38,16 @@ const Login = ({ setIsAuthenticated }) => {
         body: JSON.stringify({
           student_id: studentId,
           password: password
-        })
+        }),
+        signal: controller.signal
       });
-
+      
+      clearTimeout(timeoutId); // 清除超时
+      
+      console.log('Login response status:', response.status);
+      
       const data = await response.json();
+      console.log('Login response data:', data);
 
       if (response.ok) {
         // Store authentication status

@@ -58,23 +58,45 @@ const MachinesSection = ({ machines, onReserve, selectedSlot, onSlotSelect }) =>
     // 清理函数
     return () => clearInterval(interval);
   }, [machines]);
+  // Group machines by location
+  const groupMachinesByLocation = () => {
+    const groupedMachines = {};
+    
+    updatedMachines.forEach(machine => {
+      if (!groupedMachines[machine.location]) {
+        groupedMachines[machine.location] = [];
+      }
+      groupedMachines[machine.location].push(machine);
+    });
+    
+    return groupedMachines;
+  };
+  
+  const groupedMachines = groupMachinesByLocation();
+  const locations = Object.keys(groupedMachines);
+  
   return (
     <div className="machines-section" id="machines">
       {/* Section header */}
       <h2 className="machines-title">Our Machines</h2>
       
-       {/* Grid layout for all machine cards */}
-      <div className="machines-grid">
-        {updatedMachines.map((machine) => (
-          <MachineCard
-            key={machine.id}
-            machine={machine}
-            onReserve={onReserve}
-            selectedSlot={selectedSlot}
-            onSlotSelect={onSlotSelect}
-          />
-        ))}
-      </div>
+      {/* Display machines grouped by location */}
+      {locations.map(location => (
+        <div key={location} className="location-section">
+          <h3 className="location-title">{location}</h3>
+          <div className="machines-grid">
+            {groupedMachines[location].map((machine) => (
+              <MachineCard
+                key={machine.id}
+                machine={machine}
+                onReserve={onReserve}
+                selectedSlot={selectedSlot}
+                onSlotSelect={onSlotSelect}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

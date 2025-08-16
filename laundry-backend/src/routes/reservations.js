@@ -4,8 +4,8 @@ const { pool } = require('../config/database');
 
 // Create new reservation
 router.post('/', async (req, res) => {
-  const { start_time, end_time, student_id, machine_id, date, time } = req.body;
-  let { user_id } = req.body;
+  const { start_time, end_time, student_id, date, time } = req.body;
+  let { user_id, machine_id } = req.body;
   
   console.log('Received reservation body:', req.body);
   
@@ -53,18 +53,50 @@ router.post('/', async (req, res) => {
   // If student_id is provided, need to find user_id first
   if (student_id) {
     try {
-      const userResult = await pool.query(
-        'SELECT id FROM users WHERE student_id = $1',
-        [student_id]
-      );
-      if (userResult.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'Student not found. Please check your student ID.'
-        });
+      // 首先尝试在本地用户列表中查找（与auth.js中相同的逻辑）
+      const localUsers = [
+        {
+          id: 1,
+          student_id: 'demo',
+          password: 'demo',
+          name: 'Demo User',
+          email: 'demo@university.edu'
+        },
+        {
+          id: 2,
+          student_id: '123123',
+          password: 'password',
+          name: 'Student One',
+          email: 'student1@university.edu'
+        },
+        {
+          id: 3,
+          student_id: '456789',
+          password: 'student123',
+          name: 'Student Two',
+          email: 'student2@university.edu'
+        }
+      ];
+      
+      const foundUser = localUsers.find(u => u.student_id === student_id);
+      if (foundUser) {
+        user_id = foundUser.id;
+        console.log(`Found user_id ${user_id} for student_id ${student_id} in local users`);
+      } else {
+        // 如果本地用户列表中找不到，再尝试数据库
+        const userResult = await pool.query(
+          'SELECT id FROM users WHERE student_id = $1',
+          [student_id]
+        );
+        if (userResult.rows.length === 0) {
+          return res.status(404).json({
+            success: false,
+            message: 'Student not found. Please check your student ID.'
+          });
+        }
+        user_id = userResult.rows[0].id;
+        console.log(`Found user_id ${user_id} for student_id ${student_id} in database`);
       }
-      user_id = userResult.rows[0].id;
-      console.log(`Found user_id ${user_id} for student_id ${student_id}`);
     } catch (err) {
       console.error('Error finding user:', err);
       return res.status(500).json({
@@ -83,6 +115,36 @@ router.post('/', async (req, res) => {
   }
   
   try {
+    // 检查前端传入的machine_id是否是数字
+    const numericMachineId = parseInt(machine_id, 10);
+    if (isNaN(numericMachineId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid machine ID format. Must be a number.'
+      });
+    }
+    
+    // 不要直接查询机器ID，而是将前端ID映射到数据库ID
+    // 前端ID是简单的1-8，总是按顺序的
+    // 获取所有机器，按ID排序
+    const allMachines = await pool.query('SELECT id FROM machines ORDER BY id');
+    console.log('Available machines in database:', allMachines.rows);
+    
+    // 检查请求的机器ID是否在有效范围内
+    if (numericMachineId < 1 || numericMachineId > allMachines.rows.length) {
+      return res.status(404).json({
+        success: false,
+        message: 'Machine not found. Please select a valid machine number (1-' + allMachines.rows.length + ').'
+      });
+    }
+    
+    // 按索引位置映射，数组索引从0开始，所以要减1
+    const mappedMachineId = allMachines.rows[numericMachineId - 1].id;
+    console.log(`Mapped frontend machine_id ${numericMachineId} to database id ${mappedMachineId}`);
+    
+    // 更新machine_id为映射值
+    machine_id = mappedMachineId;
+    
     // Check for time conflicts
     console.log('🔍 Checking conflicts for:', { machine_id, finalStartTime, finalEndTime });
     

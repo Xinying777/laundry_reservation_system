@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import HeroSection from './components/hero-section-component';
 import MachinesSection from './components/machines-section-component';
 import LostAndFound from './components/lost-and-found-component';
+import FAQComponent from './components/faq-component';
 import ReservationModal from './components/reservation-modal-component';
 import Login from './components/login-component';
 import Signup from './components/signup-component';
@@ -10,6 +11,7 @@ import { machinesData } from './data/machine-data';
 import './App.css';
 
 function App() {
+  
   // Authentication state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -397,6 +399,10 @@ function App() {
     {
       path: "/lostandfound",
       element: <ProtectedRoute><LostAndFoundWrapper /></ProtectedRoute>
+    },
+    {
+      path: "/faq",
+      element: <ProtectedRoute><FAQComponent /></ProtectedRoute>
     }
   ]);
 

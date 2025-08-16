@@ -1,35 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from './navigation-component';
+import './lost-and-found.css';
 
-const LostAndFound = ({ onLogout }) => {
+// 简单的 Lost & Found 组件
+function LostAndFound({ onLogout }) {
   const navigate = useNavigate();
   const [reports, setReports] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // State for the new report being typed
+  // 新报告的状态
   const [newReport, setNewReport] = useState({
     item_name: '',
     description: '',
     location_found: '',
-    date_found: new Date().toISOString().split('T')[0] // Default to today
+    date_found: new Date().toISOString().split('T')[0] // 默认为今天
   });
 
-  // Load existing reports when page loads
+  // 页面加载时获取已有报告
   useEffect(() => {
-    console.log('🚀 Lost and Found component mounted, fetching initial reports...');
     fetchExistingReports();
   }, []);
 
-  // Function to fetch existing reports
+  // 获取已有报告的函数
   const fetchExistingReports = async () => {
     try {
-      console.log('🔄 Fetching reports...');
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/lostandfound/reports`);
       if (response.ok) {
         const data = await response.json();
-        console.log('📊 Fetched reports:', data.length, 'reports');
-        console.log('📋 First report:', data[0]);
         setReports(data);
       } else {
         console.error('Failed to fetch reports');
@@ -37,7 +35,9 @@ const LostAndFound = ({ onLogout }) => {
     } catch (error) {
       console.error('Error fetching reports:', error);
     }
-  };  // Handles changes in the form inputs
+  };
+  
+  // 处理表单输入变化
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewReport(prev => ({
@@ -46,6 +46,7 @@ const LostAndFound = ({ onLogout }) => {
     }));
   };
 
+  // 提交新报告
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!newReport.item_name || !newReport.description || !newReport.location_found) {
@@ -68,9 +69,8 @@ const LostAndFound = ({ onLogout }) => {
       }
 
       const data = await response.json();
-      console.log('✅ Report submitted successfully:', data);
-
-      // Reset form
+      
+      // 重置表单
       setNewReport({
         item_name: '',
         description: '',
@@ -78,11 +78,8 @@ const LostAndFound = ({ onLogout }) => {
         date_found: new Date().toISOString().split('T')[0]
       });
 
-      // Refresh the reports list to include the new report
-      console.log('🔄 Refreshing reports list...');
+      // 刷新报告列表
       await fetchExistingReports();
-      console.log('✅ Reports list refreshed');
-
       alert('Report submitted successfully!');
     } catch (error) {
       console.error('Error submitting report:', error);
@@ -92,7 +89,7 @@ const LostAndFound = ({ onLogout }) => {
     }
   };
 
-  // Handle logout function
+  // 处理登出
   const handleLogout = () => {
     if (onLogout) {
       onLogout();
@@ -106,54 +103,47 @@ const LostAndFound = ({ onLogout }) => {
   const studentId = localStorage.getItem('studentId');
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {/* Top blue banner, consistent with main interface */}
+    <div className="lost-and-found-container">
+      {/* 顶部蓝色横幅 */}
       <div className="hero-section">
-        <Navigation />
-        <div className="hero-content">
-          {/* Logout button and welcome message */}
-          <div style={{ 
-            position: 'absolute', 
-            top: '20px', 
-            right: '20px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '15px' 
-          }}>
+        <Navigation>
+          <div className="welcome-container">
             {studentId && (
-              <span style={{ color: 'white', fontSize: '0.9rem' }}>
+              <span className="welcome-text">
                 Welcome, {studentId}
               </span>
             )}
             <button 
               onClick={handleLogout}
-              style={{
-                background: 'rgba(255,255,255,0.2)',
-                color: 'white',
-                border: '1px solid white',
-                padding: '8px 15px',
-                borderRadius: '5px',
-                cursor: 'pointer',
-                fontSize: '0.9rem'
-              }}
+              className="logout-button"
             >
               Logout
             </button>
           </div>
-          
-          <h1 className="hero-title">Lost & Found</h1>
-          <p className="hero-subtitle">Found something? Let others know!</p>
+        </Navigation>
+        <div className="hero-content" style={{ marginTop: '20px' }}>
+          <div className="wildcat-logo">
+            <div className="wildcat-icon">N</div>
+          </div>
+          <h1 className="hero-title">
+            <div className="brand-name-wrapper">
+              <span className="brand-name">PurpleWash</span>
+            </div>
+            <div className="tagline">Campus Community Center</div>
+          </h1>
+          <p className="hero-subtitle">Report and recover lost items on campus</p>
         </div>
       </div>
 
-      {/* Content centered, unified style */}
+      {/* 内容区域 */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
         alignItems: 'flex-start', 
         justifyContent: 'center', 
         backgroundColor: '#f5f5f5', 
-        padding: '40px 20px'
+        padding: '40px 20px',
+        marginTop: '80px' // 添加距离顶部的间距
       }}>
         <div style={{
           width: '100%',
@@ -164,128 +154,71 @@ const LostAndFound = ({ onLogout }) => {
           padding: '30px',
           margin: '0 auto'
         }}>
-          {/* Submission form */}
-          <form onSubmit={handleSubmit} style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px',
-            marginBottom: '40px'
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ 
-                fontSize: '1rem',
-                fontWeight: '500',
-                color: '#1f2937'
-              }}>Item Name *</label>
+          {/* 失物招领表单 */}
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: '600',
+            color: 'var(--nu-purple)',
+            marginBottom: '1.5rem',
+            borderBottom: '2px solid var(--nu-purple-30)',
+            paddingBottom: '0.75rem'
+          }}>Report a Lost Item</h2>
+          
+          <form onSubmit={handleSubmit} className="report-form">
+            <div className="form-group">
+              <label className="form-label">Item Name *</label>
               <input
                 type="text"
                 name="item_name"
                 value={newReport.item_name}
                 onChange={handleInputChange}
-                style={{
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '1rem',
-                  width: '100%',
-                  transition: 'all 0.2s ease',
-                  outline: 'none',
-                  ':focus': {
-                    borderColor: '#2563eb',
-                    boxShadow: '0 0 0 2px rgba(37,99,235,0.2)'
-                  }
-                }}
+                className="form-input"
                 placeholder="What did you find?"
                 required
                 disabled={isSubmitting}
               />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ 
-                fontSize: '1rem',
-                fontWeight: '500',
-                color: '#1f2937'
-              }}>Description *</label>
+            <div className="form-group">
+              <label className="form-label">Description *</label>
               <textarea
                 name="description"
                 value={newReport.description}
                 onChange={handleInputChange}
-                style={{
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '1rem',
-                  width: '100%',
-                  minHeight: '120px',
-                  resize: 'vertical',
-                  transition: 'all 0.2s ease',
-                  outline: 'none',
-                  ':focus': {
-                    borderColor: '#2563eb',
-                    boxShadow: '0 0 0 2px rgba(37,99,235,0.2)'
-                  }
-                }}
-                placeholder="Provide details about the item..."
+                className="form-input form-textarea"
+                placeholder="Color, brand, distinctive features..."
                 required
                 disabled={isSubmitting}
               ></textarea>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ 
-                fontSize: '1rem',
-                fontWeight: '500',
-                color: '#1f2937'
-              }}>Location Found *</label>
-              <input
-                type="text"
+            <div className="form-group">
+              <label className="form-label">Location Found *</label>
+              <select
                 name="location_found"
                 value={newReport.location_found}
                 onChange={handleInputChange}
-                style={{
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '1rem',
-                  width: '100%',
-                  transition: 'all 0.2s ease',
-                  outline: 'none',
-                  ':focus': {
-                    borderColor: '#2563eb',
-                    boxShadow: '0 0 0 2px rgba(37,99,235,0.2)'
-                  }
-                }}
-                placeholder="Where did you find it?"
+                className="form-input"
                 required
                 disabled={isSubmitting}
-              />
+              >
+                <option value="">Select a location</option>
+                <option value="Basement">Basement</option>
+                <option value="Dorm A">Dorm A</option>
+                <option value="Dorm B">Dorm B</option>
+                <option value="Community Center">Community Center</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ 
-                fontSize: '1rem',
-                fontWeight: '500',
-                color: '#1f2937'
-              }}>Date Found</label>
+            <div className="form-group">
+              <label className="form-label">Date Found</label>
               <input
                 type="date"
                 name="date_found"
                 value={newReport.date_found}
                 onChange={handleInputChange}
-                style={{
-                  padding: '12px',
-                  borderRadius: '8px',
-                  border: '1px solid #e5e7eb',
-                  fontSize: '1rem',
-                  width: '100%',
-                  transition: 'all 0.2s ease',
-                  outline: 'none',
-                  ':focus': {
-                    borderColor: '#2563eb',
-                    boxShadow: '0 0 0 2px rgba(37,99,235,0.2)'
-                  }
-                }}
+                className="form-input"
                 max={new Date().toISOString().split('T')[0]}
                 disabled={isSubmitting}
               />
@@ -293,92 +226,109 @@ const LostAndFound = ({ onLogout }) => {
             
             <button 
               type="submit" 
-              style={{
-                backgroundColor: '#2563eb',
-                color: 'white',
-                padding: '12px 24px',
-                borderRadius: '8px',
-                border: 'none',
-                fontSize: '1rem',
-                fontWeight: '500',
-                cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s ease',
-                opacity: isSubmitting ? 0.7 : 1,
-                ':hover': {
-                  backgroundColor: '#1d4ed8'
-                }
-              }}
+              className="submit-button"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Add Report'}
+              {isSubmitting ? 'Submitting...' : 'Submit Report'}
             </button>
           </form>
           
-          {/* List of existing reports */}
-          <div style={{
-            marginTop: '40px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '20px'
-          }}>
+          {/* 已有报告列表 */}
+          <div className="reports-list">
             <h2 style={{
               fontSize: '1.5rem',
               fontWeight: '600',
-              color: '#1f2937',
-              marginBottom: '20px'
-            }}>Recent Reports</h2>
+              color: 'var(--nu-purple)',
+              marginBottom: '1.5rem',
+              borderBottom: '2px solid var(--nu-purple-30)',
+              paddingBottom: '0.75rem'
+            }}>Lost & Found Items</h2>
             
             {reports.length > 0 ? (
-              reports.map((report) => (
-                <div 
-                  key={report._id || report.id} 
-                  style={{
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    border: '1px solid #e5e7eb',
-                    padding: '20px',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                    transition: 'all 0.2s ease',
-                    ':hover': {
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                    }
-                  }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: '12px'
-                  }}>
-                    <span style={{
-                      backgroundColor: '#2563eb',
-                      color: 'white',
-                      padding: '4px 12px',
-                      borderRadius: '16px',
-                      fontSize: '0.875rem',
-                      fontWeight: '500'
-                    }}>{report.item_name}</span>
-                    <span style={{
-                      color: '#6b7280',
-                      fontSize: '0.875rem'
-                    }}>
-                      {new Date(report.date || report.date_found).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p style={{
-                    fontSize: '1rem',
-                    color: '#1f2937',
-                    marginBottom: '12px',
-                    lineHeight: '1.5'
-                  }}>{report.description}</p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: '#4b5563'
-                  }}>
-                    <strong>Location:</strong> {report.location_found}
-                  </p>
-                </div>
-              ))
+              <div style={{
+                width: '100%',
+                overflowX: 'auto',
+                borderRadius: '8px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                marginBottom: '20px'
+              }}>
+                <table style={{
+                  width: '100%',
+                  borderCollapse: 'collapse',
+                  fontSize: '0.95rem'
+                }}>
+                  <thead>
+                    <tr>
+                      <th style={{
+                        backgroundColor: 'var(--nu-purple)',
+                        color: 'white',
+                        textAlign: 'left',
+                        padding: '12px 16px',
+                        fontWeight: '600'
+                      }}>Item</th>
+                      <th style={{
+                        backgroundColor: 'var(--nu-purple)',
+                        color: 'white',
+                        textAlign: 'left',
+                        padding: '12px 16px',
+                        fontWeight: '600'
+                      }}>Location</th>
+                      <th style={{
+                        backgroundColor: 'var(--nu-purple)',
+                        color: 'white',
+                        textAlign: 'left',
+                        padding: '12px 16px',
+                        fontWeight: '600'
+                      }}>Date</th>
+                      <th style={{
+                        backgroundColor: 'var(--nu-purple)',
+                        color: 'white',
+                        textAlign: 'left',
+                        padding: '12px 16px',
+                        fontWeight: '600'
+                      }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {reports.map((report) => (
+                      <tr key={report.id || report._id}>
+                        <td style={{
+                          padding: '12px 16px',
+                          borderTop: '1px solid #e5e7eb'
+                        }}>
+                          <strong>{report.item_name}</strong>
+                          <p style={{fontSize: '0.875rem', color: '#4b5563', margin: '5px 0 0'}}>{report.description}</p>
+                        </td>
+                        <td style={{
+                          padding: '12px 16px',
+                          borderTop: '1px solid #e5e7eb'
+                        }}>{report.location_found}</td>
+                        <td style={{
+                          padding: '12px 16px',
+                          borderTop: '1px solid #e5e7eb'
+                        }}>{new Date(report.date_found).toLocaleDateString()}</td>
+                        <td style={{
+                          padding: '12px 16px',
+                          borderTop: '1px solid #e5e7eb'
+                        }}>
+                          <button style={{
+                            padding: '8px 16px',
+                            backgroundColor: 'var(--nu-purple-30)',
+                            color: 'var(--nu-purple)',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.875rem',
+                            fontWeight: '500'
+                          }}>
+                            Claim
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             ) : (
               <p style={{
                 textAlign: 'center',
@@ -392,6 +342,7 @@ const LostAndFound = ({ onLogout }) => {
       </div>
     </div>
   );
-};
+}
 
+// 确保只有一个导出语句
 export default LostAndFound;

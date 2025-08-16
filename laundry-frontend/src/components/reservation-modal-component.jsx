@@ -19,6 +19,7 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
   // State for API call
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // When form is submitted - call the actual API
   const handleSubmit = async (e) => {
@@ -83,7 +84,9 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
         console.log('🎯 Delaying parent onSubmit call to show confirmation first');
       } else {
         console.log('❌ API returned error:', result);
-        alert(result.message || 'Reservation failed. Please try again.');
+        // Use modal error instead of alert
+        setErrorMessage(result.message || 'Database error. Please try again.');
+        // Still allow closing the modal even on error
       }
     } catch (error) {
       console.error('❌ Network error making reservation:', error);
@@ -152,11 +155,22 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
     }
   }, [selectedTime]);
 
+  // Enhanced close handler to properly reset all states
+  const handleModalClose = () => {
+    setShowConfirmation(false);
+    setIsSubmitting(false);
+    setErrorMessage("");
+    
+    // Call the parent component's onClose function
+    onClose();
+  };
+  
   // Reset confirmation state when modal opens/closes
   React.useEffect(() => {
     if (!isOpen) {
       setShowConfirmation(false);
       setIsSubmitting(false);
+      setErrorMessage("");
     }
   }, [isOpen]);
 
@@ -164,16 +178,37 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
   React.useEffect(() => {
     console.log('🔄 showConfirmation state changed to:', showConfirmation);
   }, [showConfirmation]);
+  
+  // Add ESC key listener to close modal
+  React.useEffect(() => {
+    if (!isOpen) return;
+    
+    const handleEscKey = (e) => {
+      if (e.key === 'Escape') {
+        handleModalClose();
+      }
+    };
+    
+    window.addEventListener('keydown', handleEscKey);
+    return () => window.removeEventListener('keydown', handleEscKey);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
   console.log('🔍 Modal render state:', { isOpen, showConfirmation, selectedMachine: selectedMachine?.name, isSubmitting });
+  
+  // Handle click on overlay to close
+  const handleOverlayClick = (e) => {
+    if (e.target.classList.contains('modal-overlay')) {
+      handleModalClose();
+    }
+  };
 
   // Show confirmation popup after successful reservation
   if (showConfirmation) {
     console.log('🎉 Rendering confirmation modal with data:', { selectedMachine, formData });
     return (
-      <div className="modal-overlay" style={{ zIndex: 1001 }}>
+      <div className="modal-overlay" style={{ zIndex: 1001 }} onClick={handleOverlayClick}>
         <div className="modal-content confirmation-modal">
           <div className="confirmation-header">
             <div className="success-icon">✅</div>
@@ -204,19 +239,33 @@ const ReservationModal = ({ isOpen, onClose, selectedMachine, selectedTime, onSu
 
   console.log('📝 Rendering reservation form');
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={handleOverlayClick}>
       <div className="modal-content">
         <div className="modal-header">
           <h2 className="modal-title">Reserve Washer-Dryer</h2>
           <button 
-            onClick={onClose}
+            onClick={handleModalClose}
             className="modal-close"
+            aria-label="Close"
           >
             ×
           </button>
         </div>
         
         <form onSubmit={handleSubmit} className="modal-body">
+          {errorMessage && (
+            <div className="error-message">
+              <p>{errorMessage}</p>
+              <button 
+                type="button" 
+                onClick={() => setErrorMessage("")}
+                className="error-dismiss"
+              >
+                ×
+              </button>
+            </div>
+          )}
+          
           <div className="form-group">
             <label className="form-label">Machine</label>
             <input 
