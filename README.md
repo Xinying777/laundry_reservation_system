@@ -1,6 +1,9 @@
-# Northwestern Campus Laundry Hub
+# Northwestern Campus Laundry Hub (PurpleWash)
 
-A full-stack web application for managing laundry reservations and lost & found items at Northwestern University.
+A full-stack web application for managing laundry reservations and lost & found items at Northwestern University. The system provides students with an easy way to reserve washing machines across different campus locations and report or recover lost items.
+
+![Project Status: Active](https://img.shields.io/badge/Status-Active-green)
+![Last Updated: August 16, 2025](https://img.shields.io/badge/Last%20Updated-August%2016%2C%202025-blue)
 
 ## Project Structure
 
@@ -27,11 +30,13 @@ laundry_reservation_system/
 
 ## Features
 
-- **User Authentication**: Student login system
-- **Machine Management**: View available washing machines
-- **Reservation System**: Book time slots for laundry
-- **Lost & Found**: Report and find lost items
-- **Responsive Design**: Mobile-friendly interface
+- **User Authentication**: Student login and registration system with secure credential storage
+- **Machine Management**: View available washing machines across multiple campus locations (Basement, Dorm A, Dorm B, Community Center)
+- **Reservation System**: Book time slots for laundry with real-time availability updates
+- **Lost & Found**: Report and find lost items with detailed tracking
+- **FAQ System**: Comprehensive help section for common questions and issues
+- **Responsive Design**: Mobile-friendly interface for on-the-go access
+- **Modern UI**: Intuitive and clean Northwestern-themed interface with purple accent colors
 
 ## Getting Started
 
@@ -80,6 +85,11 @@ laundry_reservation_system/
 
 The backend will run on `http://localhost:3000`
 
+You can also use the provided start script:
+   ```bash
+   ./start.sh
+   ```
+
 ### Frontend Setup
 
 1. Navigate to the frontend directory:
@@ -105,6 +115,18 @@ The backend will run on `http://localhost:3000`
    ```
 
 The frontend will run on `http://localhost:3005`
+
+## Quick Start with Scripts
+
+For convenience, we've added start and stop scripts that launch both backend and frontend:
+
+```bash
+# Start both backend and frontend servers
+./start.sh
+
+# Stop all running servers
+./stop.sh
+```
 
 ## Documentation
 
@@ -138,6 +160,16 @@ For testing purposes, you can use these demo accounts:
 
 - Student ID: `demo`, Password: `demo`
 - Student ID: `123123`, Password: `password`
+
+## Recent Updates (August 2025)
+
+- Fixed Lost & Found component rendering issues
+- Added FAQ component with comprehensive help sections
+- Enabled reservation functionality for all machine locations
+- Improved UI styling with Northwestern brand colors
+- Added database initialization scripts
+- Created convenient start/stop scripts for development
+- Updated API documentation
 - Student ID: `456789`, Password: `student123`
 
 **Or create your own account:**
