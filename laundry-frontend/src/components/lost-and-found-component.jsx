@@ -7,7 +7,13 @@ import './lost-and-found.css';
 function LostAndFound({ onLogout }) {
   const navigate = useNavigate();
   const [reports, setReports] = useState([]);
+  const [filteredReports, setFilteredReports] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 搜索和过滤状态
+  const [searchTerm, setSearchTerm] = useState('');
+  const [locationFilter, setLocationFilter] = useState('All Locations');
+  const [locations, setLocations] = useState(['All Locations']);
   
   // 新报告的状态
   const [newReport, setNewReport] = useState({
@@ -21,6 +27,35 @@ function LostAndFound({ onLogout }) {
   useEffect(() => {
     fetchExistingReports();
   }, []);
+  
+  // 搜索和过滤功能
+  useEffect(() => {
+    const filtered = reports.filter(report => {
+      // 搜索条件：物品名称或描述包含搜索词（不区分大小写）
+      const matchesSearch = 
+        report.item_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        report.description.toLowerCase().includes(searchTerm.toLowerCase());
+        
+      // 位置过滤条件
+      const matchesLocation = 
+        locationFilter === 'All Locations' || 
+        report.location_found === locationFilter;
+        
+      return matchesSearch && matchesLocation;
+    });
+    
+    setFilteredReports(filtered);
+  }, [searchTerm, locationFilter, reports]);
+  
+  // 处理搜索输入变化
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+  
+  // 处理位置过滤变化
+  const handleLocationFilterChange = (e) => {
+    setLocationFilter(e.target.value);
+  };
 
   // 获取已有报告的函数
   const fetchExistingReports = async () => {
@@ -29,6 +64,11 @@ function LostAndFound({ onLogout }) {
       if (response.ok) {
         const data = await response.json();
         setReports(data);
+        setFilteredReports(data);
+        
+        // 提取所有不同的位置并添加"All Locations"选项
+        const uniqueLocations = ['All Locations', ...new Set(data.map(item => item.location_found))];
+        setLocations(uniqueLocations);
       } else {
         console.error('Failed to fetch reports');
       }
@@ -244,7 +284,52 @@ function LostAndFound({ onLogout }) {
               paddingBottom: '0.75rem'
             }}>Lost & Found Items</h2>
             
-            {reports.length > 0 ? (
+            {/* 搜索和过滤控件 */}
+            <div style={{
+              display: 'flex',
+              gap: '15px',
+              marginBottom: '20px'
+            }}>
+              {/* 搜索输入框 */}
+              <div style={{ flex: '1' }}>
+                <input 
+                  type="text" 
+                  placeholder="Search by item name or description..." 
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.875rem'
+                  }}
+                />
+              </div>
+              
+              {/* 位置过滤下拉菜单 */}
+              <div>
+                <select 
+                  value={locationFilter}
+                  onChange={handleLocationFilterChange}
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.875rem',
+                    backgroundColor: 'white'
+                  }}
+                >
+                  {locations.map((location, index) => (
+                    <option key={index} value={location}>
+                      {location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            {filteredReports.length > 0 ? (
               <div style={{
                 width: '100%',
                 overflowX: 'auto',
@@ -280,17 +365,11 @@ function LostAndFound({ onLogout }) {
                         padding: '12px 16px',
                         fontWeight: '600'
                       }}>Date</th>
-                      <th style={{
-                        backgroundColor: 'var(--nu-purple)',
-                        color: 'white',
-                        textAlign: 'left',
-                        padding: '12px 16px',
-                        fontWeight: '600'
-                      }}>Actions</th>
+                      {/* 移除Actions列标题 */}
                     </tr>
                   </thead>
                   <tbody>
-                    {reports.map((report) => (
+                    {filteredReports.map((report) => (
                       <tr key={report.id || report._id}>
                         <td style={{
                           padding: '12px 16px',
@@ -307,23 +386,7 @@ function LostAndFound({ onLogout }) {
                           padding: '12px 16px',
                           borderTop: '1px solid #e5e7eb'
                         }}>{new Date(report.date_found).toLocaleDateString()}</td>
-                        <td style={{
-                          padding: '12px 16px',
-                          borderTop: '1px solid #e5e7eb'
-                        }}>
-                          <button style={{
-                            padding: '8px 16px',
-                            backgroundColor: 'var(--nu-purple-30)',
-                            color: 'var(--nu-purple)',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.875rem',
-                            fontWeight: '500'
-                          }}>
-                            Claim
-                          </button>
-                        </td>
+                        {/* 移除Claim按钮单元格 */}
                       </tr>
                     ))}
                   </tbody>
@@ -335,7 +398,7 @@ function LostAndFound({ onLogout }) {
                 color: '#6b7280',
                 fontSize: '1rem',
                 padding: '40px 0'
-              }}>No lost items reported yet.</p>
+              }}>{reports.length > 0 ? 'No matching items found.' : 'No lost items reported yet.'}</p>
             )}
           </div>
         </div>
