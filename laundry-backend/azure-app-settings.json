@@ -1,0 +1,9 @@
+{
+  "DB_HOST": "laundry-database.postgres.database.azure.com",
+  "DB_PORT": "5432",
+  "DB_NAME": "postgres",
+  "DB_USER": "Capstone",
+  "DB_PASSWORD": "Northwestern123",
+  "JWT_SECRET": "your-super-secret-jwt-key-here-make-it-long-and-random",
+  "NODE_ENV": "production"
+}
