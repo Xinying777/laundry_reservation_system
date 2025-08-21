@@ -3,7 +3,12 @@
 A full-stack web application for managing laundry reservations and lost & found items at Northwestern University. The system provides students with an easy way to reserve washing machines across different campus locations and report or recover lost items.
 
 ![Project Status: Active](https://img.shields.io/badge/Status-Active-green)
-![Last Updated: August 16, 2025](https://img.shields.io/badge/Last%20Updated-August%2016%2C%202025-blue)
+![Last Updated: August 21, 2025](https://img.shields.io/badge/Last%20Updated-August%2021%2C%202025-blue)
+![Version: 1.2.0](https://img.shields.io/badge/Version-1.2.0-purple)
+
+<div align="center">
+  <img src="https://via.placeholder.com/800x200/4E2A84/FFFFFF?text=PurpleWash" alt="PurpleWash Banner" width="600"/>
+</div>
 
 ## Project Structure
 
@@ -30,13 +35,16 @@ laundry_reservation_system/
 
 ## Features
 
-- **User Authentication**: Student login and registration system with secure credential storage
+- **User Authentication**: Student login and registration system with secure credential storage and JWT token-based sessions
 - **Machine Management**: View available washing machines across multiple campus locations (Basement, Dorm A, Dorm B, Community Center)
-- **Reservation System**: Book time slots for laundry with real-time availability updates
-- **Lost & Found**: Report and find lost items with detailed tracking
+- **Reservation System**: Book time slots for laundry with real-time availability updates and confirmation
+- **Lost & Found**: Report and find lost items with detailed tracking, search, and location filtering
 - **FAQ System**: Comprehensive help section for common questions and issues
-- **Responsive Design**: Mobile-friendly interface for on-the-go access
-- **Modern UI**: Intuitive and clean Northwestern-themed interface with purple accent colors
+- **Responsive Design**: Mobile-friendly interface for on-the-go access across devices
+- **Modern UI**: Intuitive and clean Northwestern-themed interface with official purple accent colors
+- **Real-time Status Updates**: Live updates of machine availability and reservation status
+- **Data Security**: Encrypted credentials and secure API endpoints
+- **Search & Filter**: Advanced search capabilities for lost & found items
 
 ## Getting Started
 
@@ -163,6 +171,15 @@ For testing purposes, you can use these demo accounts:
 
 ## Recent Updates (August 2025)
 
+### August 21, 2025
+- Added search and filter functionality to Lost & Found section
+- Removed claim buttons from Lost & Found items list
+- Enhanced UI with better logo display and navigation layout
+- Updated all dependencies to latest versions
+- Optimized mobile responsiveness
+- Improved database query performance
+
+### August 16, 2025
 - Fixed Lost & Found component rendering issues
 - Added FAQ component with comprehensive help sections
 - Enabled reservation functionality for all machine locations
@@ -170,9 +187,9 @@ For testing purposes, you can use these demo accounts:
 - Added database initialization scripts
 - Created convenient start/stop scripts for development
 - Updated API documentation
-- Student ID: `456789`, Password: `student123`
+- Added test student account: Student ID: `456789`, Password: `student123`
 
-**Or create your own account:**
+**Creating Your Account:**
 - Click "Sign up here" on the login page
 - Fill in your student information (Student ID, name, email, password)
 - Phone number is optional
@@ -181,23 +198,42 @@ For testing purposes, you can use these demo accounts:
 ## Technology Stack
 
 ### Backend
-- Node.js
-- Express.js
-- PostgreSQL
-- JSON Web Tokens (JWT) for authentication
-- dotenv for environment management
+- **Node.js**: JavaScript runtime environment (v16+)
+- **Express.js**: Web application framework for building APIs
+- **PostgreSQL**: Relational database for data storage
+- **JSON Web Tokens (JWT)**: Secure authentication system
+- **Dotenv**: Environment variable management
+- **Helmet**: Security middleware for HTTP headers
+- **Morgan**: HTTP request logger
+- **CORS**: Cross-Origin Resource Sharing support
+- **Bcrypt.js**: Password hashing and security
 
 ### Frontend
-- React 19.1.0
-- React Router v6.22.3 for navigation
-- CSS3 for styling
+- **React 19.1.0**: Modern JavaScript library for user interfaces
+- **React Router v6.22.3**: Client-side routing and navigation
+- **Axios**: Promise-based HTTP client for API requests
+- **Bootstrap 5.3.7**: Responsive UI components and grid system
+- **CSS3**: Custom styling with Northwestern brand guidelines
+- **Jest & React Testing Library**: Testing framework
 
 ## Deployment
 
 ### Azure Deployment Information
-This project is configured for deployment to Azure with:
-- Azure Database for PostgreSQL - Flexible Server (laundry-db)
-- Resource Group: jasmine_capstoneproject
+This project is deployed to Azure cloud platform with the following configuration:
+
+- **Backend API**: Azure App Service
+  - URL: https://jasmineweb123-a2bfaudwhwa7fgfm.centralus-01.azurewebsites.net
+  - Region: Central US
+  - Runtime: Node.js 16 LTS
+
+- **Database**: Azure Database for PostgreSQL - Flexible Server
+  - Server: laundry-db
+  - Database: postgres
+  - Region: Central US
+  - Configuration: 2 vCores, 4GB RAM, 32GB storage
+
+- **Resource Group**: jasmine_capstoneproject
+- **Deployment Method**: GitHub Actions CI/CD
 
 ### Database Migration
 To migrate your local database to Azure:
@@ -248,6 +284,27 @@ To migrate your local database to Azure:
 4. Test thoroughly
 5. Submit a pull request
 
+## Screenshots
+
+<div align="center">
+  <img src="https://via.placeholder.com/300x200/4E2A84/FFFFFF?text=Login+Screen" alt="Login Screen" width="300"/>
+  <img src="https://via.placeholder.com/300x200/4E2A84/FFFFFF?text=Machine+Status" alt="Machine Status" width="300"/>
+  <img src="https://via.placeholder.com/300x200/4E2A84/FFFFFF?text=Lost+and+Found" alt="Lost and Found" width="300"/>
+</div>
+
+## Future Enhancements
+
+- **Mobile App**: Native mobile application for iOS and Android
+- **SMS Notifications**: Text alerts for reservation reminders and completion
+- **Machine Learning**: Predictive analytics for machine usage patterns
+- **Integration with University Systems**: Single sign-on with university credentials
+- **QR Code System**: Scan to reserve and confirm machine usage
+- **Feedback System**: User reviews and reporting for broken machines
+
+## Team Members
+
+- **Xinying**: Lead Developer & Project Manager
+
 ## License
 
-This project is developed for Northwestern University.
+This project is developed as a capstone project for Northwestern University. All rights reserved © 2025.
